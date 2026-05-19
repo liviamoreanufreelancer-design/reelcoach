@@ -46,6 +46,9 @@ export function templateToScenario(t: ReelTemplate): Scenario {
       // Pattern label drives the colored badge on the filming card.
       tag: shot.patternMeta.label,
       instructions: shot.instructions,
+      // Text burned on the final video = the reel hook, NOT the
+      // filming instructions. Empty string means "no caption".
+      overlayText: shot.overlayText,
       mustShow: shot.mustShow,
       handsBusy: shot.handsBusy,
       patternId: shot.pattern,

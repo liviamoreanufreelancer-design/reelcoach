@@ -53,7 +53,7 @@ function Edit() {
   const defaultCaptions: CaptionState[] = useMemo(
     () =>
       scenario.scenes.map((s) => ({
-        text: s.hook.replace(/\n/g, " "),
+        text: (s.overlayText ?? s.hook).replace(/\n/g, " "),
         position: "bottom" as const,
       })),
     [scenario],
@@ -478,7 +478,7 @@ function Edit() {
                       onFocus={() => setActiveScene(i)}
                       onChange={(e) => updateCaption(i, { text: e.target.value.slice(0, 120) })}
                       rows={2}
-                      placeholder={sc.hook.replace(/\n/g, " ")}
+                      placeholder={(sc.overlayText ?? sc.hook).replace(/\n/g, " ")}
                       className="w-full bg-transparent outline-none text-white text-sm resize-none placeholder:text-white/30"
                     />
                   </div>

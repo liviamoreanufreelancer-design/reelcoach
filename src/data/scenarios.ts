@@ -132,6 +132,8 @@ export interface Scene {
   tag?: string;
   /** Optional ordered bullet instructions shown instead of how/what. */
   instructions?: string[];
+  /** Caption burned onto the final video (reel hook, NOT filming instructions). */
+  overlayText?: string;
   /** Optional framing checklist — what must be visible in frame. */
   mustShow?: string[];
   /** True when the pro's hands are busy with the client. */

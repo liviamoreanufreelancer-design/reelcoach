@@ -275,47 +275,26 @@ function Film() {
               <Package className="w-3 h-3" /> De ce ai nevoie
             </span>
             <h1 className="font-display text-[34px] leading-[1.05] text-white mt-3 tracking-[-0.02em]">
-              Pregătește totul <em className="italic font-editorial text-gold-gradient">înainte</em> să filmezi.
+              Ai nevoie doar de <em className="italic font-editorial text-gold-gradient">atât</em>.
             </h1>
             <p className="text-white/65 text-[13px] mt-3 leading-relaxed">
-              Așază-le la îndemână ca să nu pierzi ritmul între scene.
+              Pregătește-le pentru filmare. Restul faci ca de obicei.
             </p>
           </div>
 
           <div className="mt-6 flex-1 overflow-y-auto -mx-1 px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {materials.length > 0 && (
-              <>
-                <p className="text-[10px] tracking-[0.35em] uppercase text-white/45 font-semibold mb-3 px-1">
-                  Materiale profesionale
-                </p>
-                <div className="grid grid-cols-1 gap-2 mb-5">
-                  {materials.map((m) => (
-                    <div key={m} className="glass-lux rounded-xl px-4 py-2.5 flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-gold-gradient shrink-0" />
-                      <span className="text-white text-[13px]">{m}</span>
+            {filmingTools.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2">
+                {filmingTools.map((tool) => (
+                  <div key={tool} className="glass-lux rounded-xl px-4 py-3 flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-gold/15 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 text-gold" strokeWidth={3} />
                     </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {filmingTools.length > 0 && (
-              <>
-                <p className="text-[10px] tracking-[0.35em] uppercase text-white/45 font-semibold mb-3 px-1 flex items-center gap-1.5">
-                  <Smartphone className="w-3 h-3" /> Pentru filmare
-                </p>
-                <div className="grid grid-cols-1 gap-2">
-                  {filmingTools.map((tool) => (
-                    <div key={tool} className="glass-lux rounded-xl px-4 py-2.5 flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
-                      <span className="text-white/85 text-[13px]">{tool}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {materials.length === 0 && filmingTools.length === 0 && (
+                    <span className="text-white text-[13px]">{tool}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
               <p className="text-white/55 text-[13px] text-center mt-8">
                 Nu ai nevoie de echipament special. Doar telefonul tău.
               </p>
@@ -513,8 +492,8 @@ function Film() {
           </div>
         )}
 
-        {/* Hook + shot card (only before recording) */}
-        {showGuide && !isRecording && (
+        {/* Hook + shot card — only once the camera is live and before recording */}
+        {cam.state === "ready" && showGuide && !isRecording && (
           <>
             {(scene.tag || scene.section) && (
               <div
