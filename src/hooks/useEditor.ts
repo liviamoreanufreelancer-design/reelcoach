@@ -1,0 +1,71 @@
+import { useEffect, useState, useCallback } from "react";
+import { get, set } from "idb-keyval";
+import type { TextPosition } from "@/data/text-presets";
+import type { Vibe } from "@/lib/brand-store";
+import type { FilterId } from "@/data/filters";
+
+export interface CaptionState {
+  text: string;
+  position: TextPosition;
+}
+
+export interface EditorState {
+  scenarioId: string;
+  captions: CaptionState[];
+  styleId: Vibe;
+  filterId: FilterId;
+  trackId: string | null;     // null = no music
+  updatedAt: number;
+}
+
+const key = (scenarioId: string) => `editor:state:${scenarioId}`;
+
+export function useEditor(scenarioId: string, defaults: { captions: CaptionState[]; vibe: Vibe }) {
+  const [state, setState] = useState<EditorState | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const stored = (await get(key(scenarioId))) as EditorState | undefined;
+      if (cancelled) return;
+      setState(stored ? { ...stored, filterId: stored.filterId ?? "none" } : {
+        scenarioId,
+        captions: defaults.captions,
+        styleId: defaults.vibe,
+        filterId: "none",
+        trackId: null,
+        updatedAt: Date.now(),
+      });
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarioId]);
+
+  const persist = useCallback(async (next: EditorState) => {
+    setState(next);
+    await set(key(scenarioId), next);
+  }, [scenarioId]);
+
+  const updateCaption = useCallback((idx: number, patch: Partial<CaptionState>) => {
+    if (!state) return;
+    const captions = state.captions.map((c, i) => i === idx ? { ...c, ...patch } : c);
+    void persist({ ...state, captions, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  const setStyle = useCallback((styleId: Vibe) => {
+    if (!state) return;
+    void persist({ ...state, styleId, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  const setTrack = useCallback((trackId: string | null) => {
+    if (!state) return;
+    void persist({ ...state, trackId, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  const setFilter = useCallback((filterId: FilterId) => {
+    if (!state) return;
+    void persist({ ...state, filterId, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  return { state, updateCaption, setStyle, setTrack, setFilter };
+}

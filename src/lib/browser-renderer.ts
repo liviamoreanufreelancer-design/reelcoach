@@ -1,0 +1,451 @@
+import type { StoredClip } from "./clip-store";
+import type { ConcatProgress } from "./render-progress";
+import type { FilterPreset } from "@/data/filters";
+import { FILTERS } from "@/data/filters";
+
+export interface SimpleEffects {
+  /** Soft cross-fade between scenes (250ms). */
+  transitions?: boolean;
+  /** Very subtle Ken Burns (1.0 → 1.04). */
+  kenBurns?: boolean;
+  /** Brand intro card (1s + 250ms fade). */
+  intro?: boolean;
+}
+
+export interface BrowserRenderOptions {
+  overlays?: (Blob | undefined)[];
+  introPng?: Blob;
+  outroPng?: Blob;
+  outroDuration?: number;
+  introDuration?: number;
+  transitionDuration?: number;
+  width?: number;
+  height?: number;
+  fps?: number;
+  effects?: SimpleEffects;
+  /** Color filter applied to each clip frame (does not affect overlays). */
+  filter?: FilterPreset;
+}
+
+type LoadedImage = { image: CanvasImageSource; cleanup: () => void };
+type LoadedVideo = { video: HTMLVideoElement; cleanup: () => void; duration: number };
+
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+function getOutputMimeType(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  const candidates = [
+    "video/mp4;codecs=avc1.640034", // H.264 High @ L5.2 (1080p+)
+    "video/mp4;codecs=avc1.4d4034", // H.264 Main @ L5.2
+    "video/mp4;codecs=avc1.42E01E",
+    "video/mp4",
+    "video/webm;codecs=vp9",
+    "video/webm;codecs=vp8",
+    "video/webm",
+  ];
+  return candidates.find((mime) => MediaRecorder.isTypeSupported(mime));
+}
+
+function getDims(source: CanvasImageSource): { w: number; h: number } {
+  const c = source as HTMLVideoElement & HTMLImageElement & ImageBitmap & HTMLCanvasElement;
+  return {
+    w: c.videoWidth || c.naturalWidth || c.width,
+    h: c.videoHeight || c.naturalHeight || c.height,
+  };
+}
+
+type KenBurnsVariant = "zoom-in" | "zoom-out" | "static";
+function pickKenBurns(idx: number): KenBurnsVariant {
+  const v: KenBurnsVariant[] = ["zoom-in", "static", "zoom-out", "static"];
+  return v[idx % v.length];
+}
+
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  zoom = 1,
+) {
+  const { w: sw, h: sh } = getDims(source);
+  if (!sw || !sh) return;
+  const baseScale = Math.max(width / sw, height / sh);
+  const scale = baseScale * zoom;
+  const dw = sw * scale;
+  const dh = sh * scale;
+  const dx = (width - dw) / 2;
+  const dy = (height - dh) / 2;
+  ctx.drawImage(source, dx, dy, dw, dh);
+}
+
+function drawContain(
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+) {
+  const { w: sw, h: sh } = getDims(source);
+  if (!sw || !sh) return;
+  const s = Math.min(width / sw, height / sh);
+  const dw = sw * s, dh = sh * s;
+  ctx.drawImage(source, (width - dw) / 2, (height - dh) / 2, dw, dh);
+}
+
+function drawClipFrame(
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  variant: KenBurnsVariant,
+  t: number,
+  enableKenBurns: boolean,
+  filter: FilterPreset,
+) {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, width, height);
+
+  // Apply CSS filter to the video draw only.
+  const prevFilter = ctx.filter;
+  ctx.filter = filter.cssFilter || "none";
+
+  let zoom = 1;
+  if (enableKenBurns && variant !== "static") {
+    const e = easeInOut(clamp01(t));
+    if (variant === "zoom-in") zoom = 1.0 + 0.04 * e;
+    else if (variant === "zoom-out") zoom = 1.04 - 0.04 * e;
+  }
+  drawCover(ctx, source, width, height, zoom);
+
+  ctx.filter = prevFilter;
+
+  // Optional tint
+  if (filter.tint) {
+    ctx.save();
+    ctx.globalAlpha = filter.tint.alpha;
+    ctx.globalCompositeOperation = "overlay";
+    ctx.fillStyle = filter.tint.color;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  // Optional vignette
+  if (filter.vignette && filter.vignette > 0) {
+    const g = ctx.createRadialGradient(
+      width / 2, height / 2, width * 0.4,
+      width / 2, height / 2, width * 0.85,
+    );
+    g.addColorStop(0, "rgba(0,0,0,0)");
+    g.addColorStop(1, `rgba(0,0,0,${filter.vignette})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, width, height);
+  }
+}
+
+// ---------- Asset loaders ----------
+
+async function loadImage(blob?: Blob): Promise<LoadedImage | undefined> {
+  if (!blob) return undefined;
+  if (typeof createImageBitmap !== "undefined") {
+    try {
+      const bm = await createImageBitmap(blob);
+      return { image: bm, cleanup: () => bm.close() };
+    } catch { /* ignore */ }
+  }
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.decoding = "async";
+  img.src = url;
+  await new Promise<void>((res, rej) => {
+    img.onload = () => res();
+    img.onerror = () => rej(new Error("Nu pot decoda imaginea."));
+  });
+  return { image: img, cleanup: () => URL.revokeObjectURL(url) };
+}
+
+async function loadVideoClip(clip: StoredClip): Promise<LoadedVideo> {
+  const url = URL.createObjectURL(clip.blob);
+  const video = document.createElement("video");
+  video.src = url;
+  video.preload = "auto";
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute("muted", "");
+  video.setAttribute("playsinline", "");
+  Object.assign(video.style, {
+    position: "fixed", left: "-9999px", top: "0",
+    width: "1px", height: "1px", opacity: "0.001", pointerEvents: "none",
+  });
+  document.body.appendChild(video);
+
+  await new Promise<void>((res, rej) => {
+    const onMeta = () => { video.removeEventListener("loadedmetadata", onMeta); res(); };
+    video.addEventListener("loadedmetadata", onMeta);
+    video.onerror = () => rej(new Error(`Nu pot citi clipul ${clip.sceneIdx + 1}.`));
+  });
+
+  const duration = Math.max(0.3, video.duration || clip.duration || 0.3);
+  return {
+    video,
+    duration,
+    cleanup: () => {
+      try { video.pause(); } catch { /* ignore */ }
+      video.remove();
+      URL.revokeObjectURL(url);
+    },
+  };
+}
+
+function createRenderCanvas(width: number, height: number) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  Object.assign(canvas.style, {
+    position: "fixed", left: "-9999px", top: "0",
+    width: "1px", height: "1px", opacity: "0.001", pointerEvents: "none",
+  });
+  document.body.appendChild(canvas);
+  return canvas;
+}
+
+function createRecorder(canvas: HTMLCanvasElement, fps: number) {
+  if (typeof canvas.captureStream !== "function") {
+    throw new Error("Browserul tău nu poate exporta video direct din editor.");
+  }
+  if (typeof MediaRecorder === "undefined") {
+    throw new Error("Browserul tău nu suportă export video din editor.");
+  }
+  const mimeType = getOutputMimeType();
+  const stream = canvas.captureStream(fps);
+  // Scale bitrate with resolution: ~0.12 bits/pixel/frame → great quality at 1080p30.
+  const pixels = canvas.width * canvas.height;
+  const bitrate = Math.min(24_000_000, Math.max(6_000_000, Math.round(pixels * fps * 0.12)));
+  const chunks: BlobPart[] = [];
+  const recorder = mimeType
+    ? new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitrate })
+    : new MediaRecorder(stream, { videoBitsPerSecond: bitrate });
+
+  recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+
+  const done = new Promise<Blob>((resolve, reject) => {
+    recorder.onerror = (event) =>
+      reject((event as ErrorEvent).error ?? new Error("Exportul video a eșuat."));
+    recorder.onstop = () => {
+      stream.getTracks().forEach((t) => t.stop());
+      resolve(new Blob(chunks, { type: mimeType ?? (recorder.mimeType || "video/webm") }));
+    };
+  });
+
+  recorder.start(250);
+  return { recorder, done };
+}
+
+// ---------- Main ----------
+
+export async function renderReelInBrowser(
+  clips: StoredClip[],
+  opts: BrowserRenderOptions = {},
+  onProgress?: (p: ConcatProgress) => void,
+): Promise<Blob> {
+  const width = opts.width ?? 540;
+  const height = opts.height ?? 960;
+  const fps = opts.fps ?? 24;
+  const frameDur = 1000 / fps;
+  const effects: Required<SimpleEffects> = {
+    transitions: true,
+    kenBurns: true,
+    intro: true,
+    ...(opts.effects ?? {}),
+  };
+  const filter = opts.filter ?? FILTERS.none;
+
+  const introMs = effects.intro && opts.introPng ? (opts.introDuration ?? 0.9) * 1000 : 0;
+  const outroMs = opts.outroPng ? (opts.outroDuration ?? 1.4) * 1000 : 0;
+  const transMs = effects.transitions ? (opts.transitionDuration ?? 0.25) * 1000 : 0;
+
+  const canvas = createRenderCanvas(width, height);
+  const ctxOrNull = canvas.getContext("2d", { alpha: false });
+  if (!ctxOrNull) throw new Error("Nu pot porni canvas-ul pentru export.");
+  const ctx: CanvasRenderingContext2D = ctxOrNull;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  onProgress?.({ phase: "loading", pct: 0, message: "Pregătesc exportul…" });
+
+  const overlayImgs = await Promise.all((opts.overlays ?? []).map((b) => loadImage(b)));
+  const introImg = await loadImage(opts.introPng);
+  const outroImg = await loadImage(opts.outroPng);
+
+  const loadedClips: LoadedVideo[] = [];
+  for (let i = 0; i < clips.length; i++) {
+    onProgress?.({
+      phase: "loading",
+      pct: Math.round((i / Math.max(1, clips.length)) * 12),
+      message: `Pregătesc clipul ${i + 1}/${clips.length}…`,
+    });
+    loadedClips.push(await loadVideoClip(clips[i]));
+  }
+
+  const clipDursMs = loadedClips.map((c) => Math.max(300, c.duration * 1000));
+  const clipsTotal = clipDursMs.reduce((a, b) => a + b, 0);
+  const transitionsCount = Math.max(0, loadedClips.length - 1);
+  const outroOverlap = outroImg && transMs ? transMs : 0;
+  const totalMs = introMs + clipsTotal - transitionsCount * transMs + outroMs - outroOverlap;
+
+  const snap = document.createElement("canvas");
+  snap.width = width; snap.height = height;
+  const snapCtx = snap.getContext("2d")!;
+
+  const incoming = document.createElement("canvas");
+  incoming.width = width; incoming.height = height;
+  const incomingCtx = incoming.getContext("2d")!;
+
+  const { recorder, done } = createRecorder(canvas, fps);
+  const variants = loadedClips.map((_, i) => (effects.kenBurns ? pickKenBurns(i) : "static" as KenBurnsVariant));
+
+  const clipStarts: number[] = [];
+  let cursor = introMs;
+  for (let i = 0; i < loadedClips.length; i++) {
+    clipStarts.push(cursor);
+    cursor += clipDursMs[i] - (i < loadedClips.length - 1 ? transMs : 0);
+  }
+  const outroStart = outroImg ? cursor - outroOverlap : Infinity;
+  let outroSnapTaken = false;
+
+  let frameIdx = 0;
+
+  try {
+    const t0 = performance.now();
+    let lastDrawn = -1;
+
+    await new Promise<void>((resolve, reject) => {
+      const tick = () => {
+        try {
+          const tMs = performance.now() - t0;
+          if (tMs >= totalMs) {
+            drawAt(totalMs - 1);
+            resolve();
+            return;
+          }
+          if (tMs - lastDrawn >= frameDur * 0.9) {
+            drawAt(tMs);
+            lastDrawn = tMs;
+            frameIdx++;
+            const pct = Math.min(98, 12 + (tMs / totalMs) * 86);
+            onProgress?.({
+              phase: "encoding",
+              pct,
+              message: `Randez · ${Math.round((tMs / totalMs) * 100)}%`,
+            });
+          }
+          setTimeout(tick, frameDur / 2);
+        } catch (err) { reject(err); }
+      };
+      setTimeout(tick, 0);
+    });
+
+    onProgress?.({ phase: "reading", pct: 99, message: "Finalizez video-ul…" });
+    await wait(150);
+    recorder.stop();
+    const blob = await done;
+    onProgress?.({ phase: "done", pct: 100, message: "Gata" });
+    return blob;
+  } finally {
+    overlayImgs.forEach((o) => o?.cleanup());
+    introImg?.cleanup();
+    outroImg?.cleanup();
+    loadedClips.forEach((c) => c.cleanup());
+    canvas.remove();
+  }
+
+  function drawClipWithOverlay(idx: number, localMs: number, target: CanvasRenderingContext2D) {
+    const lc = loadedClips[idx];
+    const tNorm = clamp01(localMs / clipDursMs[idx]);
+    drawClipFrame(target, lc.video, width, height, variants[idx], tNorm, effects.kenBurns, filter);
+    const ov = overlayImgs[idx];
+    if (ov) target.drawImage(ov.image, 0, 0, width, height);
+  }
+
+  function drawAt(tMs: number) {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
+
+    // ---- Intro ----
+    if (introMs > 0 && tMs < introMs) {
+      let alpha = 1;
+      if (tMs < 200) alpha = easeInOut(tMs / 200);
+      else if (tMs > introMs - transMs && transMs > 0 && loadedClips[0]) {
+        const o = clamp01((tMs - (introMs - transMs)) / transMs);
+        alpha = 1 - easeInOut(o);
+        ensurePlaying(0, 0);
+        drawClipWithOverlay(0, 0, ctx);
+      }
+      if (introImg) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(introImg.image, 0, 0, width, height);
+        ctx.restore();
+      }
+      return;
+    }
+
+    // ---- Outro cross-fade ----
+    if (outroImg && tMs >= outroStart) {
+      const localT = tMs - outroStart;
+      const fadeT = clamp01(localT / Math.max(1, transMs || 400));
+      if (!outroSnapTaken) {
+        const lastIdx = loadedClips.length - 1;
+        if (lastIdx >= 0) {
+          drawClipWithOverlay(lastIdx, clipDursMs[lastIdx] - 1, snapCtx);
+        }
+        outroSnapTaken = true;
+      }
+      ctx.drawImage(snap, 0, 0);
+      ctx.save();
+      ctx.globalAlpha = easeInOut(fadeT);
+      ctx.drawImage(outroImg.image, 0, 0, width, height);
+      ctx.restore();
+      return;
+    }
+
+    // ---- Active clip(s) ----
+    let active = -1, nextActive = -1;
+    for (let i = 0; i < loadedClips.length; i++) {
+      const start = clipStarts[i];
+      const end = start + clipDursMs[i];
+      if (tMs >= start && tMs < end) {
+        if (active === -1) active = i;
+        else nextActive = i;
+      }
+    }
+
+    if (active !== -1 && nextActive !== -1 && transMs > 0) {
+      const start = clipStarts[nextActive];
+      const fadeT = clamp01((tMs - start) / transMs);
+      ensurePlaying(active, tMs - clipStarts[active]);
+      ensurePlaying(nextActive, tMs - clipStarts[nextActive]);
+      drawClipWithOverlay(active, tMs - clipStarts[active], snapCtx);
+      drawClipWithOverlay(nextActive, tMs - clipStarts[nextActive], incomingCtx);
+      ctx.drawImage(snap, 0, 0);
+      ctx.save();
+      ctx.globalAlpha = easeInOut(fadeT);
+      ctx.drawImage(incoming, 0, 0);
+      ctx.restore();
+      return;
+    }
+
+    if (active !== -1) {
+      ensurePlaying(active, tMs - clipStarts[active]);
+      drawClipWithOverlay(active, tMs - clipStarts[active], ctx);
+    }
+  }
+
+  function ensurePlaying(idx: number, localMs: number) {
+    const lc = loadedClips[idx];
+    if (lc.video.paused) {
+      try { lc.video.currentTime = Math.max(0, localMs / 1000); } catch { /* ignore */ }
+      lc.video.play().catch(() => { /* ignore */ });
+    }
+  }
+}

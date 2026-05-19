@@ -1,0 +1,248 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-editorial: "Fraunces", "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 1.25rem;
+  /* ReelPilot — cinematic noir + champagne gold system */
+  --background: oklch(0.08 0.005 60);
+  --foreground: oklch(0.98 0.005 80);
+  --card: oklch(0.14 0.008 60 / 0.55);
+  --card-foreground: oklch(0.98 0.005 80);
+  --popover: oklch(0.12 0.008 60);
+  --popover-foreground: oklch(0.98 0.005 80);
+  --primary: oklch(0.98 0.005 80);
+  --primary-foreground: oklch(0.08 0.005 60);
+  --secondary: oklch(0.22 0.01 60 / 0.5);
+  --secondary-foreground: oklch(0.98 0.005 80);
+  --muted: oklch(0.18 0.008 60 / 0.6);
+  --muted-foreground: oklch(0.7 0.015 80);
+  --accent: oklch(0.82 0.14 75);
+  --accent-foreground: oklch(0.08 0.005 60);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.98 0.005 80);
+  --border: oklch(1 0 0 / 0.08);
+  --input: oklch(1 0 0 / 0.1);
+  --ring: oklch(0.82 0.14 75);
+
+  /* Champagne gold scale */
+  --gold-100: oklch(0.94 0.06 85);
+  --gold-300: oklch(0.88 0.10 80);
+  --gold:     oklch(0.82 0.13 78);
+  --gold-700: oklch(0.55 0.10 60);
+  --gradient-gold: linear-gradient(135deg, #F4E2B8 0%, #E5C892 35%, #B68A4E 100%);
+  --gradient-gold-soft: linear-gradient(135deg, color-mix(in oklab, var(--gold-100) 90%, transparent) 0%, color-mix(in oklab, var(--gold) 70%, transparent) 100%);
+  --shadow-gold: 0 20px 60px -20px color-mix(in oklab, var(--gold) 55%, transparent);
+  --shadow-contact: 0 1px 2px rgba(0,0,0,0.6), 0 12px 30px -18px rgba(0,0,0,0.7);
+  --ease-lux: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark {
+  --background: oklch(0.08 0.005 60);
+  --foreground: oklch(0.98 0.005 80);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html, body, #root {
+    height: 100%;
+    background: #000;
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  body {
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+  .font-editorial { font-family: var(--font-editorial); letter-spacing: -0.025em; }
+  .h1-lux { font-family: var(--font-display); letter-spacing: -0.035em; line-height: 0.92; }
+
+  .glass {
+    background: color-mix(in oklab, var(--color-card) 70%, transparent);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid color-mix(in oklab, white 12%, transparent);
+    box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .glass-strong {
+    background: rgba(15,12,10,0.55);
+    backdrop-filter: blur(36px) saturate(160%);
+    -webkit-backdrop-filter: blur(36px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Premium "liquid glass" — multi-layer with rim light + radial highlight */
+  .glass-lux {
+    position: relative;
+    background:
+      radial-gradient(120% 80% at 0% 0%, rgba(255,235,200,0.06), transparent 55%),
+      color-mix(in oklab, var(--color-card) 78%, transparent);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow:
+      var(--shadow-contact),
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
+    transition: transform 220ms var(--ease-lux), box-shadow 220ms var(--ease-lux);
+  }
+  .glass-lux::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,235,200,0.35), rgba(255,255,255,0.04) 35%, transparent 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+  .glass-lux:active {
+    transform: scale(0.985);
+    box-shadow: var(--shadow-contact), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .text-gold       { color: var(--gold); }
+  .text-gold-100   { color: var(--gold-100); }
+  .bg-gold-gradient { background-image: var(--gradient-gold); }
+  .text-gold-gradient {
+    background-image: var(--gradient-gold);
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+  }
+  .ring-gold {
+    box-shadow:
+      0 0 0 1px var(--gold),
+      var(--shadow-gold);
+  }
+  .shadow-gold { box-shadow: var(--shadow-gold); }
+
+  /* Warm vignette + finer grain */
+  .vignette::after {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 28%, rgba(20,10,5,0.55) 75%, rgba(0,0,0,0.85) 100%);
+  }
+  .grain::before {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+  }
+  /* Cinematic spot light: warm radial highlight top-left */
+  .spot-light::after {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(600px 480px at 12% 0%, rgba(244,226,184,0.08), transparent 60%),
+      radial-gradient(500px 420px at 90% 100%, rgba(180,120,60,0.06), transparent 65%);
+    mix-blend-mode: screen;
+  }
+
+  .ken-burns {
+    animation: kenburns 18s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+  @keyframes kenburns {
+    0%   { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
+    100% { transform: scale(1.18) translate3d(2%, 1.5%, 0); }
+  }
+  .float-slow { animation: floaty 6s ease-in-out infinite; }
+  @keyframes floaty {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .shimmer {
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 2.4s linear infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .shimmer-gold {
+    background: linear-gradient(110deg, var(--gold-700) 0%, var(--gold) 30%, var(--gold-100) 50%, var(--gold) 70%, var(--gold-700) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2.8s linear infinite;
+  }
+  .progress-fill { animation: fill 4s ease-out forwards; }
+  @keyframes fill { from { width: 0% } to { width: 100% } }
+
+  .pulse-gold { animation: pulseGold 2.4s var(--ease-lux) infinite; }
+  @keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 0 1px var(--gold), 0 12px 36px -16px color-mix(in oklab, var(--gold) 40%, transparent); }
+    50%      { box-shadow: 0 0 0 1px var(--gold-100), 0 22px 60px -14px color-mix(in oklab, var(--gold) 75%, transparent); }
+  }
+
+  .stagger-lux > * { animation: fadeUpLux 600ms var(--ease-lux) both; }
+  @keyframes fadeUpLux {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .phone-frame {
+    position: fixed; inset: 0;
+    overflow: hidden;
+    background: #000;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(1.08); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes flash {
+    0%   { background: #fff; opacity: 1; }
+    100% { background: transparent; opacity: 1; }
+  }
+}
+
+/* Mobile-first: lock to viewport on any screen, but allow stretch */
+html, body { width: 100%; }

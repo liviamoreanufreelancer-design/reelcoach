@@ -1,0 +1,706 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Download,
+  Share2,
+  Loader2,
+  AlertCircle,
+  Film as FilmIcon,
+  Check,
+  Type,
+  Sparkles,
+  Music,
+  ChevronLeft,
+  RefreshCw,
+  Instagram,
+  Facebook,
+} from "lucide-react";
+import { PhoneShell } from "@/components/PhoneShell";
+import { CinematicBg } from "@/components/CinematicBg";
+import { getSelectedScenario, getSelectedIdeaId } from "@/lib/selected-idea";
+import { listClips, clearScenario, type StoredClip } from "@/lib/clip-store";
+import type { ConcatProgress } from "@/lib/render-progress";
+import { useBrand } from "@/hooks/useBrand";
+import { useEditor, type CaptionState } from "@/hooks/useEditor";
+import { STYLE_PACKS } from "@/data/style-packs";
+import { TEXT_PRESETS } from "@/data/text-presets";
+import { DEFAULT_SCENARIO_ID, getScenarioById } from "@/data/scenarios";
+import { FILTER_LIST, FILTERS } from "@/data/filters";
+// music removed: users add audio when posting on TikTok / Instagram / Facebook
+import type { Vibe } from "@/lib/brand-store";
+import { renderOverlay, renderOutro, renderIntro, logoToBitmap } from "@/lib/overlay-renderer";
+import { renderReelInBrowser } from "@/lib/browser-renderer";
+import { LivePreview } from "@/components/editor/LivePreview";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/edit")({
+  component: Edit,
+});
+
+type Phase = "idle" | "processing" | "done" | "error" | "no-clips";
+type Tab = "text" | "style" | "music";
+
+function Edit() {
+  // Start from SSR-safe defaults, then hydrate from sessionStorage on mount.
+  const [scenario, setScenario] = useState(() => getScenarioById(DEFAULT_SCENARIO_ID)!);
+  const [scenarioId, setScenarioId] = useState(DEFAULT_SCENARIO_ID);
+  useEffect(() => {
+    setScenario(getSelectedScenario());
+    setScenarioId(getSelectedIdeaId());
+  }, []);
+  const { brand, logoUrl } = useBrand();
+
+  const defaultCaptions: CaptionState[] = useMemo(
+    () =>
+      scenario.scenes.map((s) => ({
+        text: s.hook.replace(/\n/g, " "),
+        position: "bottom" as const,
+      })),
+    [scenario],
+  );
+  const { state, updateCaption, setStyle, setFilter } = useEditor(scenarioId, {
+    captions: defaultCaptions,
+    vibe: brand?.vibe ?? "luxury",
+  });
+
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [progress, setProgress] = useState<ConcatProgress>({ phase: "loading", pct: 0 });
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("text");
+  const [clips, setClips] = useState<StoredClip[] | null>(null);
+  const [activeScene, setActiveScene] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const renderStartRef = useRef<number>(0);
+  const blobRef = useRef<Blob | null>(null);
+  const overlayCacheRef = useRef<Map<string, Blob>>(new Map());
+  const nav = useNavigate();
+  useEffect(() => {
+    void (async () => {
+      if (!scenarioId) return;
+      const list = await listClips(scenarioId);
+      setClips(list);
+      setPhase((current) => {
+        if (list.length === 0) return "no-clips";
+        return current === "no-clips" ? "idle" : current;
+      });
+    })();
+    return () => {
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarioId]);
+
+  // Music removed — users add audio from TikTok / Instagram / Facebook when posting.
+
+  const stylePack = state ? STYLE_PACKS[state.styleId] : STYLE_PACKS.luxury;
+  const livePreset = TEXT_PRESETS[stylePack.textPresetId] ?? TEXT_PRESETS.hookBold;
+
+  async function generate() {
+    if (!state) return;
+    setPhase("processing");
+    setErrorMsg(null);
+    setProgress({ phase: "loading", pct: 1, message: "Pornesc exportul video…" });
+    setVideoUrl(null);
+    blobRef.current = null;
+    renderStartRef.current = performance.now();
+    setElapsed(0);
+    const tickId = window.setInterval(
+      () => setElapsed((performance.now() - renderStartRef.current) / 1000),
+      250,
+    );
+    try {
+      const clips = await listClips(scenarioId);
+      if (clips.length === 0) {
+        setPhase("no-clips");
+        return;
+      }
+
+      // Ținem live preview-ul existent pe ecran și generăm doar versiunea finală.
+      setProgress({ phase: "writing", pct: 8, message: "Pregătesc textele și brandul…" });
+      const stylePack = STYLE_PACKS[state.styleId];
+      const preset = TEXT_PRESETS[stylePack.textPresetId] ?? TEXT_PRESETS.hookBold;
+      const logoBmp = await logoToBitmap(brand?.logoBlob);
+
+      const overlays: (Blob | undefined)[] = [];
+      for (let i = 0; i < clips.length; i++) {
+        const c = clips[i];
+        const cap = state.captions[c.sceneIdx];
+        const overlayKey = JSON.stringify({
+          sceneIdx: c.sceneIdx,
+          text: cap?.text?.trim() ?? "",
+          position: cap?.position ?? "bottom",
+          presetId: preset.id,
+          handle: brand?.handle ?? "",
+          logoUpdatedAt: brand?.updatedAt ?? 0,
+        });
+        setProgress({
+          phase: "writing",
+          pct: 8 + ((i + 1) / clips.length) * 12,
+          message: `Pregătesc overlay scena ${i + 1}/${clips.length}…`,
+        });
+        const cached = overlayCacheRef.current.get(overlayKey);
+        if (cached) {
+          overlays.push(cached);
+          continue;
+        }
+        let overlayBlob: Blob;
+        if (!cap || !cap.text.trim()) {
+          overlayBlob = await renderOverlay({
+            preset,
+            handle: brand?.handle,
+            logoBitmap: logoBmp,
+            width: 1080,
+            height: 1920,
+          });
+          overlayCacheRef.current.set(overlayKey, overlayBlob);
+          overlays.push(overlayBlob);
+          continue;
+        }
+        overlayBlob = await renderOverlay({
+          caption: { text: cap.text, position: cap.position, presetId: preset.id },
+          preset,
+          handle: brand?.handle,
+          logoBitmap: logoBmp,
+          width: 1080,
+          height: 1920,
+        });
+        overlayCacheRef.current.set(overlayKey, overlayBlob);
+        overlays.push(overlayBlob);
+      }
+
+      const hasBrandInfo = !!(brand?.name || brand?.handle || brand?.phone || brand?.logoBlob);
+      setProgress({
+        phase: "writing",
+        pct: 22,
+        message: hasBrandInfo ? "Pregătesc outro-ul…" : "Sar peste outro…",
+      });
+      const outroPng = hasBrandInfo
+        ? await renderOutro({
+            brandName: brand?.name,
+            handle: brand?.handle,
+            phone: brand?.phone,
+            location: brand?.location,
+            logoBitmap: logoBmp,
+            primary: brand?.primary,
+            accent: brand?.accent,
+            width: 1080,
+            height: 1920,
+          })
+        : undefined;
+
+      const introPng = hasBrandInfo
+        ? await renderIntro({
+            brandName: brand?.name,
+            handle: brand?.handle,
+            logoBitmap: logoBmp,
+            primary: brand?.primary,
+            accent: brand?.accent,
+            width: 1080,
+            height: 1920,
+          })
+        : undefined;
+
+      const blob = await renderReelInBrowser(
+        clips,
+        {
+          overlays,
+          introPng,
+          outroPng,
+          width: 1080,
+          height: 1920,
+          fps: 30,
+          effects: { transitions: true, kenBurns: true, intro: true },
+          filter: FILTERS[state.filterId] ?? FILTERS.none,
+        },
+        (p) =>
+          setProgress({
+            ...p,
+            pct: 24 + p.pct * 0.76,
+            message: `Calitate finală · ${p.message ?? "Procesez…"}`,
+          }),
+      );
+      blobRef.current = blob;
+      setVideoUrl(URL.createObjectURL(blob));
+      setPhase("done");
+    } catch (err) {
+      setErrorMsg((err as Error)?.message ?? "Eroare la editare.");
+      setPhase("error");
+    } finally {
+      window.clearInterval(tickId);
+    }
+  }
+
+  const download = () => {
+    if (!blobRef.current) return;
+    const url = URL.createObjectURL(blobRef.current);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${scenario.title.replace(/\s+/g, "-").toLowerCase()}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const APP_LINKS: Record<"tiktok" | "instagram" | "facebook", { app: string; web: string; label: string }> = {
+    tiktok: {
+      app: "snssdk1233://user/profile/self",
+      web: "https://www.tiktok.com/upload",
+      label: "TikTok",
+    },
+    instagram: {
+      app: "instagram://library?AssetPath=",
+      web: "https://www.instagram.com/",
+      label: "Instagram",
+    },
+    facebook: {
+      app: "fb://composer",
+      web: "https://www.facebook.com/reels/create",
+      label: "Facebook",
+    },
+  };
+
+  const openApp = (platform: "tiktok" | "instagram" | "facebook") => {
+    const { app, web, label } = APP_LINKS[platform];
+    toast.success(`Deschid ${label}`, {
+      description: "Alege videoul descărcat din Galerie și adaugă muzica.",
+    });
+    // Try deep link first, fallback to web after a short delay if app not installed.
+    const start = Date.now();
+    const fallback = window.setTimeout(() => {
+      if (Date.now() - start < 1800) window.open(web, "_blank");
+    }, 1200);
+    window.location.href = app;
+    window.addEventListener(
+      "pagehide",
+      () => window.clearTimeout(fallback),
+      { once: true },
+    );
+  };
+
+  const share = async (platform?: "tiktok" | "instagram" | "facebook") => {
+    if (!blobRef.current) return;
+    const file = new File([blobRef.current], `${scenario.title}.mp4`, { type: "video/mp4" });
+    const platformLabel = platform ? APP_LINKS[platform].label : "";
+    const title = platformLabel ? `${scenario.title} · pentru ${platformLabel}` : scenario.title;
+
+    // 1. Native share sheet (works on iOS / Android with file attached)
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title,
+          text: platform
+            ? `Postează pe ${platformLabel} și adaugă muzica din librăria oficială.`
+            : undefined,
+        });
+        return;
+      } catch (err) {
+        // user cancelled or share failed — fall through to download + deep link
+        if ((err as Error)?.name === "AbortError") return;
+      }
+    }
+
+    // 2. Fallback: download the file then try to open the app
+    download();
+    if (platform) {
+      toast.message("Clip salvat", {
+        description: `Acum deschidem ${platformLabel}. Alege videoul descărcat și adaugă muzica.`,
+      });
+      window.setTimeout(() => openApp(platform), 600);
+    }
+  };
+
+  const restart = async () => {
+    await clearScenario(scenarioId);
+    nav({ to: "/film" });
+  };
+
+  if (phase === "no-clips") return <NoClips />;
+
+  return (
+    <PhoneShell>
+      <CinematicBg src={scenario.scenes[0]?.bg} blur overlay={0.82} kenBurns={false} />
+      <div className="relative z-10 flex flex-col h-full px-5 pt-4 pb-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Link
+            to="/film"
+            className="w-10 h-10 rounded-full glass flex items-center justify-center"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Link>
+          <div className="text-center">
+            <p className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+              Pasul 02 · Editare
+            </p>
+            <p className="text-white text-xs mt-0.5 truncate max-w-[200px]">{scenario.title}</p>
+          </div>
+          <Link
+            to="/settings/brand"
+            className="w-10 h-10 rounded-full glass flex items-center justify-center"
+            aria-label="Brand"
+          >
+            <Sparkles className="w-4 h-4 text-gold" />
+          </Link>
+        </div>
+
+        {/* Preview */}
+        <div
+          className="mt-4 mx-auto rounded-2xl overflow-hidden border border-gold/20 shadow-gold bg-black"
+          style={{ aspectRatio: "9/16", width: "min(60vw, 250px)" }}
+        >
+          {phase === "done" && videoUrl ? (
+            <video src={videoUrl} controls playsInline className="w-full h-full object-cover" />
+          ) : phase === "processing" ? (
+            <div className="relative w-full h-full bg-black">
+              {clips && clips.length > 0 && state ? (
+                <div className="absolute inset-0">
+                  <LivePreview
+                    clips={clips}
+                    captions={clips.map(
+                      (c) => state.captions[c.sceneIdx] ?? { text: "", position: "bottom" },
+                    )}
+                    preset={livePreset}
+                    transition={stylePack.transitionId}
+                    handle={brand?.handle}
+                    logoUrl={logoUrl}
+                    activeIdx={Math.min(activeScene, clips.length - 1)}
+                    onSceneChange={(i) => setActiveScene(clips[i]?.sceneIdx ?? i)}
+                  />
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <FilmIcon className="w-8 h-8 text-gold animate-pulse" />
+                </div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/85 via-black/55 to-transparent">
+                <p className="text-[9px] tracking-[0.25em] uppercase text-gold/90 text-center mb-1.5">
+                  Preview live · randez calitate finală
+                </p>
+                <div className="h-[3px] bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gold-gradient transition-all duration-200"
+                    style={{ width: `${Math.min(100, Math.max(2, Math.round(progress.pct)))}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-center text-white/85 text-[10px]">
+                  {progress.message ?? "Procesez…"}
+                </p>
+                <p className="mt-0.5 text-center text-[9px] tracking-widest uppercase text-white/45 tabular-nums">
+                  {Math.round(progress.pct)}% · {elapsed.toFixed(0)}s
+                </p>
+              </div>
+            </div>
+          ) : phase === "error" ? (
+            <div className="w-full h-full flex flex-col items-center justify-center text-rose-300 text-xs gap-2 p-3 text-center">
+              <AlertCircle className="w-6 h-6" />
+              <p>{errorMsg}</p>
+            </div>
+          ) : clips && clips.length > 0 && state ? (
+            <LivePreview
+              clips={clips}
+              captions={clips.map(
+                (c) => state.captions[c.sceneIdx] ?? { text: "", position: "bottom" },
+              )}
+              preset={livePreset}
+              transition={stylePack.transitionId}
+              handle={brand?.handle}
+              logoUrl={logoUrl}
+              activeIdx={Math.min(activeScene, clips.length - 1)}
+              onSceneChange={(i) => setActiveScene(clips[i]?.sceneIdx ?? i)}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-white/45 text-[11px] tracking-widest uppercase gap-2 p-3 text-center">
+              <FilmIcon className="w-7 h-7 text-gold/70" />
+              <span>Se încarcă…</span>
+            </div>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-4 flex gap-1 p-1 rounded-full glass">
+          <TabBtn
+            active={tab === "text"}
+            onClick={() => setTab("text")}
+            icon={<Type className="w-3.5 h-3.5" />}
+            label="Texte"
+          />
+          <TabBtn
+            active={tab === "style"}
+            onClick={() => setTab("style")}
+            icon={<Sparkles className="w-3.5 h-3.5" />}
+            label="Stil"
+          />
+          <TabBtn
+            active={tab === "music"}
+            onClick={() => setTab("music")}
+            icon={<Music className="w-3.5 h-3.5" />}
+            label="Muzică"
+          />
+        </div>
+
+        {/* Tab content */}
+        <div className="flex-1 overflow-y-auto mt-3 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {state && tab === "text" && (
+            <div className="space-y-2">
+              {scenario.scenes.map((sc, i) => {
+                const cap = state.captions[i] ?? { text: "", position: "bottom" as const };
+                return (
+                  <div
+                    key={i}
+                    onClick={() => setActiveScene(i)}
+                    className={`glass-lux rounded-2xl p-3 transition cursor-pointer ${activeScene === i ? "ring-1 ring-gold/60" : ""}`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] tracking-widest uppercase text-gold/80">
+                        Scena {i + 1}
+                      </span>
+                      <div className="flex gap-1">
+                        {(["top", "center", "bottom"] as const).map((pos) => (
+                          <button
+                            key={pos}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateCaption(i, { position: pos });
+                              setActiveScene(i);
+                            }}
+                            className={`text-[10px] px-2 py-1 rounded-full ${cap.position === pos ? "bg-gold text-black" : "bg-white/10 text-white/60"}`}
+                          >
+                            {pos === "top" ? "sus" : pos === "center" ? "centru" : "jos"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <textarea
+                      value={cap.text}
+                      onFocus={() => setActiveScene(i)}
+                      onChange={(e) => updateCaption(i, { text: e.target.value.slice(0, 120) })}
+                      rows={2}
+                      placeholder={sc.hook.replace(/\n/g, " ")}
+                      className="w-full bg-transparent outline-none text-white text-sm resize-none placeholder:text-white/30"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {state && tab === "style" && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-gold/80 mb-2 px-1">
+                  Pachet stil
+                </p>
+                <div className="space-y-2">
+                  {(["luxury", "soft", "bold"] as Vibe[]).map((v) => {
+                    const sp = STYLE_PACKS[v];
+                    const active = state.styleId === v;
+                    return (
+                      <button
+                        key={v}
+                        onClick={() => setStyle(v)}
+                        className={`w-full text-left rounded-2xl p-4 border transition ${active ? "border-gold bg-white/[0.06]" : "border-white/10 bg-white/[0.02]"}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`font-display text-2xl ${active ? "text-gold-gradient" : "text-white"}`}
+                          >
+                            {sp.label}
+                          </span>
+                          {active && <Check className="w-4 h-4 text-gold" />}
+                        </div>
+                        <p className="text-white/55 text-xs mt-1">{sp.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-gold/80 mb-2 px-1">
+                  Filtru culoare
+                </p>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {FILTER_LIST.map((f) => {
+                    const active = state.filterId === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        onClick={() => setFilter(f.id)}
+                        className={`flex-shrink-0 rounded-xl px-3 py-2 border transition text-left min-w-[88px] ${active ? "border-gold bg-white/[0.07]" : "border-white/10 bg-white/[0.02]"}`}
+                      >
+                        <div
+                          className="w-full h-12 rounded-md mb-1.5 border border-white/10"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #c9a87a 0%, #6b4f30 50%, #2a1f12 100%)",
+                            filter: f.cssFilter,
+                          }}
+                        />
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-medium ${active ? "text-gold" : "text-white/85"}`}>
+                            {f.label}
+                          </span>
+                          {active && <Check className="w-3 h-3 text-gold" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-white/45 text-[10px] mt-2 px-1 leading-relaxed">
+                  {FILTERS[state.filterId]?.desc ?? "Fără filtru."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {state && tab === "music" && (
+            <div className="space-y-3">
+              <div className="rounded-2xl p-5 border border-gold/30 bg-white/[0.04] text-center">
+                <span className="inline-flex w-12 h-12 rounded-full bg-gold/15 text-gold items-center justify-center mb-3">
+                  <Music className="w-5 h-5" />
+                </span>
+                <p className="text-white text-sm font-medium">Muzica se adaugă pe rețea</p>
+                <p className="text-white/55 text-xs mt-2 leading-relaxed">
+                  Reel-ul se exportă fără sunet. Adaugă muzica direct din TikTok, Instagram sau
+                  Facebook când postezi — vei avea acces la întreaga lor bibliotecă oficială și fără
+                  probleme de copyright.
+                </p>
+              </div>
+              <div className="rounded-2xl p-3.5 border border-white/10 bg-white/[0.02]">
+                <p className="text-[10px] tracking-widest uppercase text-gold/80 mb-2">
+                  Cum procedezi
+                </p>
+                <ol className="text-white/70 text-xs space-y-1.5 list-decimal list-inside leading-relaxed">
+                  <li>Descarcă MP4-ul generat aici.</li>
+                  <li>Deschide aplicația (TikTok / Instagram / Facebook) și încarcă videoul.</li>
+                  <li>Alege piesa din librăria platformei și publică.</li>
+                </ol>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom actions */}
+        <div className="mt-3">
+          {phase === "done" ? (
+            <div className="space-y-2">
+              <div className="rounded-2xl border border-gold/25 bg-white/[0.03] p-3">
+                <p className="text-[10px] tracking-[0.3em] uppercase text-gold/80 text-center mb-2">
+                  Postează cu muzică oficială
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => share("tiktok")}
+                    className="h-11 rounded-xl bg-black border border-white/15 text-white text-xs font-medium flex flex-col items-center justify-center gap-0.5 active:scale-[0.98]"
+                  >
+                    <span className="text-[13px] leading-none">🎵</span>
+                    <span className="text-[10px] tracking-wide">TikTok</span>
+                  </button>
+                  <button
+                    onClick={() => share("instagram")}
+                    className="h-11 rounded-xl text-white text-xs font-medium flex flex-col items-center justify-center gap-0.5 active:scale-[0.98]"
+                    style={{ background: "linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)" }}
+                  >
+                    <Instagram className="w-3.5 h-3.5" />
+                    <span className="text-[10px] tracking-wide">Reels</span>
+                  </button>
+                  <button
+                    onClick={() => share("facebook")}
+                    className="h-11 rounded-xl bg-[#1877f2] text-white text-xs font-medium flex flex-col items-center justify-center gap-0.5 active:scale-[0.98]"
+                  >
+                    <Facebook className="w-3.5 h-3.5" />
+                    <span className="text-[10px] tracking-wide">Facebook</span>
+                  </button>
+                </div>
+                <p className="text-white/45 text-[10px] mt-2 text-center leading-relaxed">
+                  Se deschide aplicația cu clipul atașat — alegi piesa din librăria lor și postezi.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => share()}
+                  className="flex-1 h-11 rounded-full bg-gold-gradient text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-gold active:scale-[0.98]"
+                >
+                  <Share2 className="w-4 h-4" /> Altă aplicație
+                </button>
+                <button
+                  onClick={download}
+                  className="flex-1 h-11 rounded-full text-white text-sm font-medium bg-white/10 border border-white/15 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  <Download className="w-4 h-4" /> MP4
+                </button>
+              </div>
+              <button
+                onClick={generate}
+                className="w-full h-9 text-[11px] tracking-widest uppercase text-white/55 flex items-center justify-center gap-1.5"
+              >
+                <RefreshCw className="w-3 h-3" /> Re-generează
+              </button>
+            </div>
+          ) : phase === "processing" ? (
+            <div className="h-12 flex items-center justify-center gap-2 text-white/45 text-[11px] tracking-widest uppercase">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Nu închide tab-ul ·{" "}
+              {Math.round(progress.pct)}%
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <button
+                onClick={generate}
+                className="w-full h-14 rounded-full bg-gold-gradient text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-gold active:scale-[0.98]"
+              >
+                <Sparkles className="w-4 h-4" /> Generează Reel
+              </button>
+              <button
+                onClick={restart}
+                className="w-full h-9 text-[11px] tracking-widest uppercase text-white/45"
+              >
+                Reia filmările
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </PhoneShell>
+  );
+}
+
+function TabBtn({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 h-9 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition ${active ? "bg-gold-gradient text-black" : "text-white/65"}`}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+function NoClips() {
+  return (
+    <PhoneShell>
+      <div className="relative z-10 flex flex-col h-full items-center justify-center px-6 text-center bg-background">
+        <AlertCircle className="w-8 h-8 text-gold" />
+        <p className="text-white text-sm mt-4">Nu există clipuri salvate pentru acest scenariu.</p>
+        <Link
+          to="/film"
+          className="mt-5 inline-flex h-12 px-6 rounded-full bg-gold-gradient text-black text-sm font-semibold items-center"
+        >
+          Începe filmarea
+        </Link>
+      </div>
+    </PhoneShell>
+  );
+}
