@@ -132,6 +132,12 @@ export interface Scene {
   tag?: string;
   /** Optional ordered bullet instructions shown instead of how/what. */
   instructions?: string[];
+  /** Optional framing checklist — what must be visible in frame. */
+  mustShow?: string[];
+  /** True when the pro's hands are busy with the client. */
+  handsBusy?: boolean;
+  /** Optional shot-pattern id, drives the colored pattern badge. */
+  patternId?: string;
 }
 
 export type Difficulty = "easy" | "medium" | "hard";

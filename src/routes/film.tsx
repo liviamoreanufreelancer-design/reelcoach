@@ -41,6 +41,7 @@ function Film() {
   const [showGuide, setShowGuide] = useState(true);
   /** 3-2-1 countdown before recording. null = inactive. */
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [showWhy, setShowWhy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const nav = useNavigate();
   const scene = scenes[idx];
@@ -109,7 +110,7 @@ function Film() {
     if (countdownRef.current) clearTimeout(countdownRef.current);
     countdownRef.current = null;
     setCountdown(null);
-    setShowGuide(true);
+    setShowGuide(true); setShowWhy(false);
   };
 
   // Drive the 3-2-1 countdown.
@@ -145,7 +146,7 @@ function Film() {
     // then move to the next scene or to the editor when finished.
     setTimeout(() => {
       setT(0);
-      setShowGuide(true);
+      setShowGuide(true); setShowWhy(false);
       if (idx >= scenes.length - 1) {
         nav({ to: "/editing" });
       } else {
@@ -171,12 +172,12 @@ function Film() {
 
   const prev = () => {
     if (rec.state === "recording") rec.cancel();
-    setT(0); setShowGuide(true);
+    setT(0); setShowGuide(true); setShowWhy(false);
     setIdx((p) => Math.max(0, p - 1));
   };
   const next = () => {
     if (rec.state === "recording") rec.cancel();
-    setT(0); setShowGuide(true);
+    setT(0); setShowGuide(true); setShowWhy(false);
     if (idx === scenes.length - 1) nav({ to: "/editing" });
     else setIdx((p) => p + 1);
   };
@@ -609,42 +610,86 @@ function Film() {
           </div>
         )}
 
-        {/* Hook + cards (only before recording) */}
+        {/* Hook + shot card (only before recording) */}
         {showGuide && !isRecording && (
           <>
             {(scene.tag || scene.section) && (
-              <p
+              <div
                 key={`tag-${idx}`}
-                className="mt-6 px-2 text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold animate-fade-in"
+                className="mt-6 px-2 flex items-center gap-2 animate-fade-in"
               >
-                {scene.tag ?? scene.section}
-              </p>
+                {scene.tag && (
+                  <span className={`inline-flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase font-semibold px-2.5 py-1 rounded-full ${patternBadge(scene.patternId)}`}>
+                    {scene.tag}
+                  </span>
+                )}
+                {scene.section && (
+                  <span className="text-[10px] tracking-[0.3em] uppercase text-white/45 font-semibold">
+                    {scene.section}
+                  </span>
+                )}
+              </div>
             )}
             <h2
               key={scene.hook}
-              className={`font-display ${scene.tag ? "text-[34px] mt-2" : "text-[40px] mt-6"} leading-[0.95] text-white px-2 whitespace-pre-line animate-fade-in drop-shadow-lg`}
+              className={`font-display ${scene.tag ? "text-[32px] mt-2.5" : "text-[40px] mt-6"} leading-[1.0] text-white px-2 whitespace-pre-line animate-fade-in drop-shadow-lg`}
             >
               {scene.hook}
             </h2>
-            {scene.instructions && scene.instructions.length > 0 ? (
+
+            {/* Instruction bullets - one physical action per line */}
+            {scene.instructions && scene.instructions.length > 0 && (
               <div className="mt-5 glass-lux rounded-2xl px-4 py-4 animate-fade-in" style={{ animationDelay: "60ms", animationFillMode: "backwards" }}>
-                <p className="text-[10px] tracking-[0.35em] uppercase text-gold-gradient font-semibold mb-2.5">
-                  Cum filmezi
+                <p className="text-[10px] tracking-[0.35em] uppercase text-gold-gradient font-semibold mb-3">
+                  Pas cu pas
                 </p>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {scene.instructions.map((it, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-white text-[13px] leading-snug">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gold-gradient shrink-0" />
+                    <li key={i} className="flex items-start gap-3 text-white text-[14px] leading-snug">
+                      <span className="mt-0.5 w-6 h-6 rounded-full bg-gold/15 text-gold flex items-center justify-center shrink-0">
+                        {instructionIcon(it)}
+                      </span>
                       <span>{it}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-            ) : (
-              <div className="mt-5 space-y-2.5">
-                <InstructionCard icon={<Camera className="w-4 h-4" />} label="Ce filmezi" text={scene.what} delay={0} />
-                <InstructionCard icon={<Smartphone className="w-4 h-4" />} label="Cum filmezi" text={scene.how} delay={80} />
+            )}
+
+            {/* Framing checklist - what must be visible */}
+            {scene.mustShow && scene.mustShow.length > 0 && (
+              <div className="mt-3 glass-lux rounded-2xl px-4 py-3 animate-fade-in" style={{ animationDelay: "120ms", animationFillMode: "backwards" }}>
+                <p className="text-[10px] tracking-[0.35em] uppercase text-emerald-300/80 font-semibold mb-2 flex items-center gap-1.5">
+                  <ListChecks className="w-3.5 h-3.5" /> Trebuie sa se vada
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {scene.mustShow.map((m, i) => (
+                    <span key={i} className="text-[12px] text-white/85 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10">
+                      {m}
+                    </span>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* "Why it matters" - optional context, collapsed by default */}
+            {scene.what && (
+              <button
+                onClick={() => setShowWhy((v) => !v)}
+                className="mt-3 w-full glass-lux rounded-2xl px-4 py-3 text-left animate-fade-in"
+                style={{ animationDelay: "160ms", animationFillMode: "backwards" }}
+              >
+                <p className="text-[11px] text-white/55 flex items-center gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-gold/70" />
+                  De ce conteaza
+                  <ChevronRight className={`w-3.5 h-3.5 ml-auto transition-transform ${showWhy ? "rotate-90" : ""}`} />
+                </p>
+                {showWhy && (
+                  <p className="text-white/70 text-[13px] leading-relaxed mt-2">
+                    {scene.what}
+                  </p>
+                )}
+              </button>
             )}
           </>
         )}
@@ -754,4 +799,32 @@ function InstructionCard({
       </div>
     </div>
   );
+}
+
+
+/** Pattern badge colors - matches SHOT_PATTERNS accent in shots.ts. */
+function patternBadge(patternId?: string): string {
+  switch (patternId) {
+    case "before":     return "bg-sky-400/15 text-sky-300";
+    case "process":    return "bg-violet-400/15 text-violet-300";
+    case "suspense":   return "bg-amber-400/15 text-amber-300";
+    case "reveal":     return "bg-gold/15 text-gold";
+    case "reaction":   return "bg-rose-400/15 text-rose-300";
+    case "confidence": return "bg-emerald-400/15 text-emerald-300";
+    default:           return "bg-gold/15 text-gold";
+  }
+}
+
+/**
+ * Pick an anchor icon for an instruction line by keyword. The icon is a
+ * visual anchor so the pro scans rather than reads - it never replaces
+ * the text, so an imperfect guess is harmless.
+ */
+function instructionIcon(text: string): React.ReactNode {
+  const t = text.toLowerCase();
+  if (/telefon|sprijin|camer|filmare/.test(t)) return <Smartphone className="w-3.5 h-3.5" />;
+  if (/lumin|geam|fereastr/.test(t))           return <Sparkles className="w-3.5 h-3.5" />;
+  if (/incadr|vad[ăa]|vada|verific|cadru/.test(t)) return <ListChecks className="w-3.5 h-3.5" />;
+  if (/cere|client|zamb|zâmb|atinga|atingă|intoarc|întoarc/.test(t)) return <Play className="w-3.5 h-3.5" />;
+  return <ChevronRight className="w-3.5 h-3.5" />;
 }

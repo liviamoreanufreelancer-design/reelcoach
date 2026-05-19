@@ -11,8 +11,8 @@
  *      Category → Subcategory → ReelTemplate → Section[] → Shot[]
  *
  *  Every Shot is built from a reusable SHOT PATTERN (Before, Process,
- *  Reveal, Reaction, Confidence...). Patterns carry the defaults that
- *  make hundreds of templates feel consistent without hand-writing
+ *  Suspense, Reveal, Reaction, Confidence). Patterns carry the defaults
+ *  that make hundreds of templates feel consistent without hand-writing
  *  every shot. A template author only overrides what's specific.
  *
  *  Design rule: users are salon professionals, not creators. The data
@@ -30,13 +30,14 @@ import type { Profession } from "./scenarios";
  * ──────────────────────────────────────────────────────────────────── */
 
 /**
- * The five canonical shot patterns. Every shot in every template is one
+ * The six canonical shot patterns. Every shot in every template is one
  * of these. Adding a new pattern here makes it instantly reusable across
  * all templates — that is the whole point of the architecture.
  */
 export type ShotPatternId =
   | "before"
   | "process"
+  | "suspense"
   | "reveal"
   | "reaction"
   | "confidence";
@@ -49,7 +50,7 @@ export interface ShotPattern {
   purpose: string;
   /** Sensible defaults — a template only overrides what differs. */
   defaults: {
-    /** Seconds the pro records in-app. */
+    /** Seconds the pro records in-app. Generous, so filming feels calm. */
     recordingDuration: number;
     /** Seconds of that recording actually used in the final reel. */
     finalUsageDuration: number;
@@ -61,7 +62,7 @@ export interface ShotPattern {
   /** Lucide icon name, for UI. */
   icon: string;
   /** Accent used across guidance screens for this pattern. */
-  accent: "rose" | "gold" | "emerald" | "violet" | "sky";
+  accent: "rose" | "gold" | "emerald" | "violet" | "sky" | "amber";
 }
 
 export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
@@ -72,7 +73,7 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     icon: "Camera",
     accent: "sky",
     defaults: {
-      recordingDuration: 5,
+      recordingDuration: 4,
       finalUsageDuration: 2,
       transitionType: "cut",
       filterStyle: "none",
@@ -86,10 +87,24 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     icon: "Sparkles",
     accent: "violet",
     defaults: {
-      recordingDuration: 15,
-      finalUsageDuration: 5,
+      recordingDuration: 5,
+      finalUsageDuration: 2,
       transitionType: "fade",
       filterStyle: "warm",
+      countdown: 3,
+    },
+  },
+  suspense: {
+    id: "suspense",
+    label: "Suspense Shot",
+    purpose: "Construiește tensiune. Arată destul cât să stârnești curiozitate — nu dezvălui încă.",
+    icon: "EyeOff",
+    accent: "amber",
+    defaults: {
+      recordingDuration: 4,
+      finalUsageDuration: 2,
+      transitionType: "fade",
+      filterStyle: "cinema",
       countdown: 3,
     },
   },
@@ -101,7 +116,7 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     accent: "gold",
     defaults: {
       recordingDuration: 6,
-      finalUsageDuration: 3,
+      finalUsageDuration: 4,
       transitionType: "zoom",
       filterStyle: "cinema",
       countdown: 3,
@@ -128,7 +143,7 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     icon: "Crown",
     accent: "emerald",
     defaults: {
-      recordingDuration: 6,
+      recordingDuration: 5,
       finalUsageDuration: 3,
       transitionType: "fade",
       filterStyle: "cinema",
@@ -140,6 +155,7 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
 export const SHOT_PATTERN_LIST: ShotPattern[] = [
   SHOT_PATTERNS.before,
   SHOT_PATTERNS.process,
+  SHOT_PATTERNS.suspense,
   SHOT_PATTERNS.reveal,
   SHOT_PATTERNS.reaction,
   SHOT_PATTERNS.confidence,
@@ -159,13 +175,26 @@ export interface Shot {
   id: string;
   /** Which reusable pattern this shot is built on. */
   pattern: ShotPatternId;
-  /** Short title shown on the guidance card, e.g. "Părul înainte de tuns". */
+  /** Short title shown on the guidance card, e.g. "Filmează BEFORE-ul". */
   title: string;
   /**
-   * Ordered, plain-language steps. Written for a salon pro, not a
-   * videographer. Keep each line short and concrete.
+   * Ordered, plain-language steps. Each one is a single physical action,
+   * written as an imperative command to the pro ("Așază…", "Verifică…").
+   * Never videographer jargon. If the pro reads ONLY these, she must be
+   * able to film the shot correctly.
    */
   instructions: string[];
+  /**
+   * What must be visible in frame — a short checklist, not instructions.
+   * Helps the pro confirm she framed it right.
+   */
+  mustShow?: string[];
+  /**
+   * True when the pro's hands are busy with the client (styling, cutting).
+   * The flow uses this to never ask her to move the phone, and to show
+   * the "prop it up / or ask a colleague" guidance.
+   */
+  handsBusy?: boolean;
   /** Seconds recorded in-app. Falls back to pattern default. */
   recordingDuration?: number;
   /** Seconds used in the final reel. Falls back to pattern default. */
@@ -181,8 +210,11 @@ export interface Shot {
 }
 
 /** A shot with every field filled in (pattern defaults applied). */
-export interface ResolvedShot extends Required<Omit<Shot, "overlayText">> {
+export interface ResolvedShot
+  extends Required<Omit<Shot, "overlayText" | "mustShow" | "handsBusy">> {
   overlayText: string;
+  mustShow: string[];
+  handsBusy: boolean;
   patternMeta: ShotPattern;
 }
 
@@ -194,6 +226,8 @@ export function resolveShot(shot: Shot): ResolvedShot {
     pattern: shot.pattern,
     title: shot.title,
     instructions: shot.instructions,
+    mustShow: shot.mustShow ?? [],
+    handsBusy: shot.handsBusy ?? false,
     recordingDuration: shot.recordingDuration ?? p.defaults.recordingDuration,
     finalUsageDuration: shot.finalUsageDuration ?? p.defaults.finalUsageDuration,
     countdown: shot.countdown ?? p.defaults.countdown,

@@ -10,9 +10,15 @@
  *  To add a template:
  *    1. (optional) add a Subcategory under a Category
  *    2. add a ReelTemplate with sections + shots
- *    3. each shot just picks a pattern from shots.ts and overrides text
+ *    3. each shot picks a pattern from shots.ts and overrides text
  *
- *  Patterns carry all the boring defaults. A template stays readable.
+ *  Instruction-writing rules (decided together — keep them):
+ *    - one bullet = one physical action, imperative ("Așază…")
+ *    - no videographer jargon, no unstated equipment assumptions
+ *    - if hands are busy with the client → handsBusy: true, phone stays
+ *      propped (never "move the phone")
+ *    - `mustShow` is a framing checklist, NOT instructions
+ *    - if the pro reads only `instructions`, she can film it correctly
  * ════════════════════════════════════════════════════════════════════
  */
 
@@ -48,16 +54,16 @@ export const CATEGORIES: Category[] = [
 
 export const SUBCATEGORIES: Subcategory[] = [
   {
+    id: "dramatic-transformation",
+    categoryId: "transformation",
+    label: "Transformare dramatică",
+    blurb: "Contrast puternic before/after. Efect WOW.",
+  },
+  {
     id: "before-after",
     categoryId: "transformation",
     label: "Before & After",
-    blurb: "Metamorfoza clasică în 4 cadre.",
-  },
-  {
-    id: "glow-up",
-    categoryId: "transformation",
-    label: "Glow Up",
-    blurb: "Pas cu pas spre versiunea ei cea mai bună.",
+    blurb: "Metamorfoza clasică în câteva cadre.",
   },
   {
     id: "client-reaction",
@@ -69,79 +75,106 @@ export const SUBCATEGORIES: Subcategory[] = [
 
 /* ─────────────────────────────────────────────────────────────────────
  * REEL TEMPLATES
- *
- * One fully built demo template, shot-first, end to end. It proves the
- * structure works through the whole flow. Copy it to add more.
  * ──────────────────────────────────────────────────────────────────── */
 
 export const REEL_TEMPLATES: ReelTemplate[] = [
   {
-    id: "before-after-classic",
-    subcategoryId: "before-after",
-    title: "Before & After clasic",
-    promise: "Un reel de transformare în 4 cadre. Filmezi 34 de secunde, iese un clip de ~13.",
+    id: "wow-transformation",
+    subcategoryId: "dramatic-transformation",
+    title: "Nu o să crezi transformarea asta",
+    promise:
+      "Un reel cu efect WOW prin contrast puternic before/after. Filmezi relaxat, appul taie și montează singur.",
     cover: coverBeforeAfter,
-    professions: ["par", "machiaj", "unghii", "gene", "sprancene"],
+    professions: ["par"],
     sections: [
       {
-        id: "sec-start",
+        id: "sec-before",
         title: "Punctul de plecare",
         shots: [
           {
             id: "shot-before",
             pattern: "before",
-            title: "Cadrul „înainte”",
+            title: "Filmează BEFORE-ul",
             instructions: [
-              "Așază clienta pe scaun, lumina pe față.",
-              "Ține telefonul vertical, fix, la nivelul ochilor.",
-              "Nu corecta nimic — arată exact cum a venit.",
+              "Așază clienta cu fața spre telefon",
+              "Încadrează de la piept în sus, cu tot părul vizibil",
+              "Sprijină telefonul vertical și nu-l mișca",
+              "Cere-i clientei să stea serioasă o secundă",
             ],
-            overlayText: "ÎNAINTE",
+            mustShow: ["Tot părul", "Expresia clientei", "Aspectul „înainte”"],
+            overlayText: "Nu o să crezi transformarea asta.",
+            recordingDuration: 4,
+            finalUsageDuration: 2,
           },
         ],
       },
       {
-        id: "sec-work",
+        id: "sec-process",
         title: "Transformarea",
         shots: [
           {
             id: "shot-process",
             pattern: "process",
-            title: "Mâinile la lucru",
+            title: "Filmează transformarea",
+            handsBusy: true,
             instructions: [
-              "Filmează de aproape mâinile tale în timp ce lucrezi.",
-              "Mișcări lente și sigure — nu te grăbi.",
-              "Lasă camera fixă, lasă mișcarea ta să umple cadrul.",
+              "Sprijină telefonul aproape de zona de lucru — sau roagă o colegă să-l țină",
+              "Verifică să se vadă bine mâinile și părul",
+              "Lucrează normal până se oprește filmarea",
             ],
-            overlayText: "Magia se întâmplă",
+            mustShow: ["Procesul", "Mișcarea părului", "Detalii lucioase"],
+            overlayText: "Wait for the reveal…",
+            recordingDuration: 5,
+            finalUsageDuration: 2,
           },
         ],
       },
       {
-        id: "sec-result",
-        title: "Rezultatul",
+        id: "sec-reveal",
+        title: "Marele reveal",
         shots: [
+          {
+            id: "shot-suspense",
+            pattern: "suspense",
+            title: "Creează suspans",
+            instructions: [
+              "Filmează clienta din spate, fără să-i arăți fața",
+              "Ține telefonul stabil în mână",
+              "Cere-i să întoarcă puțin capul",
+            ],
+            mustShow: ["Părul final", "Mișcarea lui", "Doar puțin din transformare"],
+            overlayText: "Wait for the reveal…",
+            recordingDuration: 4,
+            finalUsageDuration: 2,
+          },
           {
             id: "shot-reveal",
             pattern: "reveal",
-            title: "Cadrul „după”",
+            title: "Filmează reveal-ul",
             instructions: [
-              "Același unghi ca la cadrul „înainte”.",
-              "Mișcă telefonul foarte încet spre clientă.",
-              "Lasă rezultatul să respire — fără grabă.",
+              "Cere-i clientei să se întoarce încet spre telefon",
+              "La final, cere-i un hair flip ușor",
+              "Ține telefonul stabil, în lumină bună",
             ],
-            overlayText: "DUPĂ",
+            mustShow: ["Culoarea completă", "Luciul", "Volumul", "Expresia clientei"],
+            overlayText: "Luxury hair energy.",
+            recordingDuration: 6,
+            finalUsageDuration: 4,
           },
           {
-            id: "shot-reaction",
-            pattern: "reaction",
-            title: "Reacția clientei",
+            id: "shot-confidence",
+            pattern: "confidence",
+            title: "Filmează energia finală",
             instructions: [
-              "Întoarce clienta spre oglindă.",
-              "Filmează-i fața, nu oglinda.",
-              "Nu regiza nimic — prinde reacția reală.",
+              "Cere-i clientei să zâmbească discret",
+              "Cere-i să-și atingă ușor părul",
+              "Cere-i să facă doi pași spre telefon",
+              "Ține telefonul stabil și filmează natural",
             ],
-            overlayText: "Reacția ei spune tot",
+            mustShow: ["Încrederea", "Transformarea", "Energia feminină"],
+            overlayText: "Luxury hair energy.",
+            recordingDuration: 5,
+            finalUsageDuration: 3,
           },
         ],
       },

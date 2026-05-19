@@ -7,7 +7,7 @@
  *  existing flow — film, editing, edit, export — still speaks the older
  *  `Scenario` / `Scene` language.
  *
- *  Rather than rewrite ~160 files at once, this adapter projects a
+ *  Rather than rewrite the whole flow at once, this adapter projects a
  *  `ReelTemplate` down into a `Scenario`. New code reads ReelTemplate
  *  directly; legacy screens keep working unchanged. Zero regression.
  *
@@ -43,8 +43,12 @@ export function templateToScenario(t: ReelTemplate): Scenario {
       what: shot.patternMeta.purpose,
       how: shot.instructions.join(" "),
       section: sectionLabel,
-      tag: `${shot.patternMeta.label}`,
+      // Pattern label drives the colored badge on the filming card.
+      tag: shot.patternMeta.label,
       instructions: shot.instructions,
+      mustShow: shot.mustShow,
+      handsBusy: shot.handsBusy,
+      patternId: shot.pattern,
     };
   });
 
