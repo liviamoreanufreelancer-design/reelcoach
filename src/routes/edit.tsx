@@ -348,8 +348,8 @@ function Edit() {
 
         {/* Preview */}
         <div
-          className="mt-4 mx-auto rounded-2xl overflow-hidden border border-gold/20 shadow-gold bg-black"
-          style={{ aspectRatio: "9/16", width: "min(60vw, 250px)" }}
+          className="mt-3 mx-auto rounded-xl overflow-hidden border border-gold/20 shadow-gold bg-black shrink-0"
+          style={{ aspectRatio: "9/16", width: "min(42vw, 165px)" }}
         >
           {phase === "done" && videoUrl ? (
             <video src={videoUrl} controls playsInline className="w-full h-full object-cover" />
@@ -420,7 +420,7 @@ function Edit() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-4 flex gap-1 p-1 rounded-full glass">
+        <div className="mt-3 flex gap-1 p-1 rounded-full glass shrink-0">
           <TabBtn
             active={tab === "text"}
             onClick={() => setTab("text")}
@@ -442,7 +442,7 @@ function Edit() {
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 overflow-y-auto mt-3 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto mt-2.5 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {state && tab === "text" && (
             <div className="space-y-2">
               {scenario.scenes.map((sc, i) => {
@@ -584,7 +584,7 @@ function Edit() {
         </div>
 
         {/* Bottom actions */}
-        <div className="mt-3">
+        <div className="mt-3 shrink-0">
           {phase === "done" ? (
             <div className="space-y-2">
               <div className="rounded-2xl border border-gold/25 bg-white/[0.03] p-3">

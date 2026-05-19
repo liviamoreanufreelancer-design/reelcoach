@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Smartphone, ChevronLeft, ChevronRight, ArrowRight, Check, RefreshCw, Square, Upload, AlertCircle, Sparkles, Package, Play, ListChecks, Lightbulb } from "lucide-react";
+import { Camera, Smartphone, ChevronLeft, ChevronRight, ArrowRight, Check, RefreshCw, Square, Upload, AlertCircle, Sparkles, Package, Play, ListChecks } from "lucide-react";
 import { PhoneShell } from "@/components/PhoneShell";
 import { CinematicBg } from "@/components/CinematicBg";
 import { getSelectedScenario, getSelectedIdeaId } from "@/lib/selected-idea";
@@ -31,17 +31,15 @@ function Film() {
     : diff === "medium" ? "text-gold"
     : "text-rose-300/90";
 
-  /** overview → materials → (prep) → film */
-  const hasPrep = !!scenario.prep;
-  const totalSteps = hasPrep ? 4 : 3;
-  const [phase, setPhase] = useState<"overview" | "materials" | "prep" | "film">("overview");
+  /** overview → materials → film */
+  const totalSteps = 2;
+  const [phase, setPhase] = useState<"overview" | "materials" | "film">("overview");
   const [idx, setIdx] = useState(0);
   const [t, setT] = useState(0);
   const [captured, setCaptured] = useState<Set<number>>(new Set());
   const [showGuide, setShowGuide] = useState(true);
   /** 3-2-1 countdown before recording. null = inactive. */
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [showWhy, setShowWhy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const nav = useNavigate();
   const scene = scenes[idx];
@@ -110,7 +108,7 @@ function Film() {
     if (countdownRef.current) clearTimeout(countdownRef.current);
     countdownRef.current = null;
     setCountdown(null);
-    setShowGuide(true); setShowWhy(false);
+    setShowGuide(true);
   };
 
   // Drive the 3-2-1 countdown.
@@ -142,17 +140,10 @@ function Film() {
       createdAt: Date.now(),
     });
     setCaptured((s) => new Set(s).add(idx));
-    // Auto-advance: short pause so the user sees the saved confirmation,
-    // then move to the next scene or to the editor when finished.
-    setTimeout(() => {
-      setT(0);
-      setShowGuide(true); setShowWhy(false);
-      if (idx >= scenes.length - 1) {
-        nav({ to: "/editing" });
-      } else {
-        setIdx((p) => p + 1);
-      }
-    }, 900);
+    // No auto-advance: the user reviews the scene and presses "Next"
+    // themselves. Just reset the timer and show the guide again.
+    setT(0);
+    setShowGuide(true);
   };
 
   const handleFallbackUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,12 +163,12 @@ function Film() {
 
   const prev = () => {
     if (rec.state === "recording") rec.cancel();
-    setT(0); setShowGuide(true); setShowWhy(false);
+    setT(0); setShowGuide(true);
     setIdx((p) => Math.max(0, p - 1));
   };
   const next = () => {
     if (rec.state === "recording") rec.cancel();
-    setT(0); setShowGuide(true); setShowWhy(false);
+    setT(0); setShowGuide(true);
     if (idx === scenes.length - 1) nav({ to: "/editing" });
     else setIdx((p) => p + 1);
   };
@@ -246,30 +237,7 @@ function Film() {
             </span>
           </div>
 
-          <div className="mt-6 flex-1 overflow-y-auto -mx-1 px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <p className="text-[10px] tracking-[0.35em] uppercase text-white/45 font-semibold mb-3 px-1">
-              Scenele pe care le vei filma
-            </p>
-            <div className="space-y-2.5">
-              {scenes.map((sc, i) => (
-                <div key={i} className="glass-lux rounded-2xl px-4 py-3 flex gap-3 items-start">
-                  <div className="mt-0.5 w-8 h-8 rounded-full bg-gold/15 text-gold-gradient flex items-center justify-center shrink-0 text-[12px] font-bold" style={{ fontVariantNumeric: "tabular-nums" }}>
-                    {i + 1}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-white text-[13px] font-semibold leading-snug whitespace-pre-line">
-                        {sc.hook.replace(/\n/g, " ")}
-                      </p>
-                      <span className="text-[10px] tracking-widest text-gold/80 shrink-0" style={{ fontVariantNumeric: "tabular-nums" }}>
-                        {sc.duration}s
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <div className="flex-1" />
 
           <button
             onClick={() => setPhase("materials")}
@@ -355,10 +323,10 @@ function Film() {
           </div>
 
           <button
-            onClick={() => setPhase(hasPrep ? "prep" : "film")}
+            onClick={() => setPhase("film")}
             className="mt-2 w-full h-14 rounded-full bg-gold-gradient text-black text-[13px] tracking-widest uppercase font-semibold shadow-gold active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            {hasPrep ? <>Continuă <ArrowRight className="w-4 h-4" /></> : <><Play className="w-4 h-4 fill-current" /> Sunt pregătit, începem</>}
+            <><Play className="w-4 h-4 fill-current" /> Sunt pregătit, începem</>
           </button>
         </div>
       </PhoneShell>
@@ -366,71 +334,6 @@ function Film() {
   }
 
   // ---------- Intro: Pregătește filmarea (checklist + tip) ----------
-  if (phase === "prep" && scenario.prep) {
-    const prep = scenario.prep;
-    return (
-      <PhoneShell>
-        <CinematicBg src={scenario.image ?? scene.bg} blur overlay={0.8} kenBurns={false} />
-        <div className="relative z-10 flex flex-col h-full px-5 pt-12 pb-6">
-          <div className="flex items-center justify-between px-1">
-            <button
-              onClick={() => setPhase("materials")}
-              className="w-10 h-10 rounded-full glass flex items-center justify-center"
-              aria-label="Înapoi"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <span className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
-              Pasul 3 din {totalSteps}
-            </span>
-            <span className="w-10" />
-          </div>
-
-          <div className="mt-7 px-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-gold/90 font-semibold">
-              <ListChecks className="w-3 h-3" /> Pregătește filmarea
-            </span>
-            <h1 className="font-display text-[34px] leading-[1.05] text-white mt-3 tracking-[-0.02em]">
-              {prep.title ?? "Pregătește filmarea"}
-            </h1>
-            <p className="text-white/65 text-[13px] mt-3 leading-relaxed">
-              Verifică tot înainte să apeși record — filmarea curge mai departe singură.
-            </p>
-          </div>
-
-          <div className="mt-6 flex-1 overflow-y-auto -mx-1 px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="grid grid-cols-1 gap-2">
-              {prep.checklist.map((item, i) => (
-                <div key={i} className="glass-lux rounded-xl px-4 py-3 flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full border border-gold/40 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 text-gold" strokeWidth={3} />
-                  </div>
-                  <span className="text-white text-[13px]">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            {prep.tip && (
-              <div className="mt-5 rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/[0.08] to-transparent px-4 py-4">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="w-3.5 h-3.5 text-gold" />
-                  <p className="text-[9px] tracking-[0.4em] uppercase text-gold/90 font-semibold">Tip de pro</p>
-                </div>
-                <p className="text-white/90 text-[13px] leading-snug mt-2 italic">„{prep.tip}"</p>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => setPhase("film")}
-            className="mt-2 w-full h-14 rounded-full bg-gold-gradient text-black text-[13px] tracking-widest uppercase font-semibold shadow-gold active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            <Play className="w-4 h-4 fill-current" /> Sunt gata
-          </button>
-        </div>
-      </PhoneShell>
-    );
-  }
 
 
   // ---------- Film: scene-by-scene ----------
@@ -672,25 +575,6 @@ function Film() {
               </div>
             )}
 
-            {/* "Why it matters" - optional context, collapsed by default */}
-            {scene.what && (
-              <button
-                onClick={() => setShowWhy((v) => !v)}
-                className="mt-3 w-full glass-lux rounded-2xl px-4 py-3 text-left animate-fade-in"
-                style={{ animationDelay: "160ms", animationFillMode: "backwards" }}
-              >
-                <p className="text-[11px] text-white/55 flex items-center gap-1.5">
-                  <Lightbulb className="w-3.5 h-3.5 text-gold/70" />
-                  De ce conteaza
-                  <ChevronRight className={`w-3.5 h-3.5 ml-auto transition-transform ${showWhy ? "rotate-90" : ""}`} />
-                </p>
-                {showWhy && (
-                  <p className="text-white/70 text-[13px] leading-relaxed mt-2">
-                    {scene.what}
-                  </p>
-                )}
-              </button>
-            )}
           </>
         )}
 
