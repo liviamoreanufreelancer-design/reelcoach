@@ -287,7 +287,23 @@ export async function renderReelInBrowser(
     loadedClips.push(await loadVideoClip(clips[i]));
   }
 
-  const clipDursMs = loadedClips.map((c) => Math.max(300, c.duration * 1000));
+  // ── Auto-trim ─────────────────────────────────────────────────────
+  // Each clip plays for `finalUsageDuration` seconds (the spec's "auto-trim
+  // the best parts"), taken from the MIDDLE of the recording — the start
+  // has setup wobble and the end has stop-anxiety, so the middle is the
+  // most stable cadre. If a clip has no finalUsageDuration the whole clip
+  // plays (legacy behaviour, zero regression).
+  const clipDursMs = loadedClips.map((c, i) => {
+    const recordedMs = Math.max(300, c.duration * 1000);
+    const targetSec = clips[i]?.finalUsageDuration;
+    if (!targetSec || targetSec <= 0) return recordedMs;
+    return Math.min(recordedMs, Math.max(300, targetSec * 1000));
+  });
+  const clipStartOffsetMs = loadedClips.map((c, i) => {
+    const recordedMs = Math.max(0, c.duration * 1000);
+    const playedMs = clipDursMs[i];
+    return Math.max(0, (recordedMs - playedMs) / 2);
+  });
   const clipsTotal = clipDursMs.reduce((a, b) => a + b, 0);
   const transitionsCount = Math.max(0, loadedClips.length - 1);
   const outroOverlap = outroImg && transMs ? transMs : 0;
@@ -443,8 +459,12 @@ export async function renderReelInBrowser(
 
   function ensurePlaying(idx: number, localMs: number) {
     const lc = loadedClips[idx];
+    // Seek into the clip at: middle-start offset + how far we are into the
+    // played window. This is what realises the auto-trim — the recorder
+    // captured 5s but we only play the chosen 2s from the middle.
+    const seekSec = Math.max(0, (clipStartOffsetMs[idx] + localMs) / 1000);
     if (lc.video.paused) {
-      try { lc.video.currentTime = Math.max(0, localMs / 1000); } catch { /* ignore */ }
+      try { lc.video.currentTime = seekSec; } catch { /* ignore */ }
       lc.video.play().catch(() => { /* ignore */ });
     }
   }

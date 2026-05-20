@@ -26,6 +26,7 @@ import { STYLE_PACKS } from "@/data/style-packs";
 import { TEXT_PRESETS } from "@/data/text-presets";
 import { DEFAULT_SCENARIO_ID, getScenarioById } from "@/data/scenarios";
 import { FILTER_LIST, FILTERS } from "@/data/filters";
+import { TRANSITIONS } from "@/data/transitions";
 // music removed: users add audio when posting on TikTok / Instagram / Facebook
 import type { Vibe } from "@/lib/brand-store";
 import { renderOverlay, renderOutro, renderIntro, logoToBitmap } from "@/lib/overlay-renderer";
@@ -210,7 +211,15 @@ function Edit() {
           width: 1080,
           height: 1920,
           fps: 30,
-          effects: { transitions: true, kenBurns: true, intro: true },
+          effects: {
+            // "cut" is the no-transition option — disable transitions entirely
+            // so the renderer doesn't blend frames at all.
+            transitions: stylePack.transitionId !== "cut",
+            kenBurns: true,
+            intro: true,
+          },
+          transitionDuration:
+            (TRANSITIONS[stylePack.transitionId]?.durationMs ?? 250) / 1000,
           filter: FILTERS[state.filterId] ?? FILTERS.none,
         },
         (p) =>

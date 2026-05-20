@@ -137,6 +137,7 @@ function Film() {
       blob: result.blob,
       mimeType: result.mimeType,
       duration: t || scene.duration,
+      finalUsageDuration: scene.finalUsageDuration,
       createdAt: Date.now(),
     });
     setCaptured((s) => new Set(s).add(idx));
@@ -155,6 +156,7 @@ function Film() {
       blob: file,
       mimeType: file.type || "video/mp4",
       duration: scene.duration,
+      finalUsageDuration: scene.finalUsageDuration,
       createdAt: Date.now(),
     });
     setCaptured((s) => new Set(s).add(idx));

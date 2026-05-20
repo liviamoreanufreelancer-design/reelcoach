@@ -5,7 +5,15 @@ export type StoredClip = {
   sceneIdx: number;
   blob: Blob;
   mimeType: string;
-  duration: number; // seconds
+  /** Recorded length of the clip, in seconds. */
+  duration: number;
+  /**
+   * Auto-trim target: how many seconds of this clip the renderer keeps in
+   * the final reel. The renderer extracts these from the MIDDLE of the
+   * recording (start has setup wobble, end has stop-anxiety). If absent,
+   * the whole clip is used (legacy behaviour, zero regression).
+   */
+  finalUsageDuration?: number;
   createdAt: number;
 };
 

@@ -134,6 +134,8 @@ export interface Scene {
   instructions?: string[];
   /** Caption burned onto the final video (reel hook, NOT filming instructions). */
   overlayText?: string;
+  /** Seconds of this clip actually used in the final reel (auto-trim target). */
+  finalUsageDuration?: number;
   /** Optional framing checklist — what must be visible in frame. */
   mustShow?: string[];
   /** True when the pro's hands are busy with the client. */
