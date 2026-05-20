@@ -3,6 +3,7 @@ import { Play, Pause, ChevronLeft, ChevronRight, VolumeX, Volume2 } from "lucide
 import type { CaptionState } from "@/hooks/useEditor";
 import type { TextPreset } from "@/data/text-presets";
 import type { TransitionId } from "@/data/transitions";
+import type { FilterPreset } from "@/data/filters";
 import type { StoredClip } from "@/lib/clip-store";
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
   captions: CaptionState[];
   preset: TextPreset;
   transition: TransitionId;
+  /** Same colour filter the export will use, so the preview matches. */
+  filter?: FilterPreset;
   handle?: string;
   logoUrl?: string | null;
   musicUrl?: string | null;
@@ -23,7 +26,7 @@ interface Props {
  * like. No re-encode — instant feedback while the user types.
  */
 export function LivePreview({
-  clips, captions, preset, transition,
+  clips, captions, preset, transition, filter,
   handle, logoUrl, musicUrl,
   activeIdx, onSceneChange,
 }: Props) {
@@ -120,12 +123,15 @@ export function LivePreview({
     cap?.position === "center" ? "items-center"        :
                                  "items-end pb-12";
 
-  // Transition-in animation per scene.
-  const transitionClass =
+  // Per-scene transition: re-mounts on idx change so the animation re-fires.
+  // Durations match the canvas renderer (transitions.ts).
+  const sceneAnimClass =
     transition === "fade"  ? "animate-[fadeIn_300ms_ease-out]" :
-    transition === "flash" ? "animate-[flash_120ms_ease-out]"  :
     transition === "zoom"  ? "animate-[zoomIn_250ms_ease-out]" :
+    transition === "flash" ? "animate-[fadeIn_80ms_ease-out]"  :
                              "";
+  // Flash transition uses an overlay sibling — see render below.
+  const showFlash = transition === "flash";
 
   if (!clip || !url) {
     return (
@@ -137,16 +143,44 @@ export function LivePreview({
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden group">
-      <video
-        key={`v-${idx}`}
-        ref={videoRef}
-        src={url}
-        autoPlay={playing}
-        muted
-        playsInline
-        onEnded={handleEnded}
-        className={`absolute inset-0 w-full h-full object-cover ${transitionClass}`}
-      />
+      <div
+        key={`scene-${idx}`}
+        className={`absolute inset-0 ${sceneAnimClass}`}
+      >
+        <video
+          ref={videoRef}
+          src={url}
+          autoPlay={playing}
+          muted
+          playsInline
+          onEnded={handleEnded}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={filter ? { filter: filter.cssFilter } : undefined}
+        />
+        {/* Vignette + tint, matching the canvas renderer. Pointer-events
+            off so the side controls still work. */}
+        {filter?.tint && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: filter.tint.color, opacity: filter.tint.alpha }}
+          />
+        )}
+        {filter?.vignette && filter.vignette > 0 && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,${filter.vignette}) 100%)`,
+            }}
+          />
+        )}
+      </div>
+      {/* White flash overlay — fires per scene change. */}
+      {showFlash && (
+        <div
+          key={`flash-${idx}`}
+          className="absolute inset-0 bg-white pointer-events-none animate-[flashOverlay_180ms_ease-out]"
+        />
+      )}
       {musicUrl && (
         <audio ref={audioRef} src={musicUrl} loop preload="auto" />
       )}

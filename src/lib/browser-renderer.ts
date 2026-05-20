@@ -2,6 +2,7 @@ import type { StoredClip } from "./clip-store";
 import type { ConcatProgress } from "./render-progress";
 import type { FilterPreset } from "@/data/filters";
 import { FILTERS } from "@/data/filters";
+import type { TransitionId } from "@/data/transitions";
 
 export interface SimpleEffects {
   /** Soft cross-fade between scenes (250ms). */
@@ -19,6 +20,8 @@ export interface BrowserRenderOptions {
   outroDuration?: number;
   introDuration?: number;
   transitionDuration?: number;
+  /** Which transition style to use between scenes. Defaults to fade. */
+  transitionType?: TransitionId;
   width?: number;
   height?: number;
   fps?: number;
@@ -262,6 +265,7 @@ export async function renderReelInBrowser(
 
   const introMs = effects.intro && opts.introPng ? (opts.introDuration ?? 0.9) * 1000 : 0;
   const outroMs = opts.outroPng ? (opts.outroDuration ?? 1.4) * 1000 : 0;
+  const transitionType: TransitionId = opts.transitionType ?? "fade";
   const transMs = effects.transitions ? (opts.transitionDuration ?? 0.25) * 1000 : 0;
 
   const canvas = createRenderCanvas(width, height);
@@ -438,16 +442,52 @@ export async function renderReelInBrowser(
 
     if (active !== -1 && nextActive !== -1 && transMs > 0) {
       const start = clipStarts[nextActive];
-      const fadeT = clamp01((tMs - start) / transMs);
+      const t = clamp01((tMs - start) / transMs);
       ensurePlaying(active, tMs - clipStarts[active]);
       ensurePlaying(nextActive, tMs - clipStarts[nextActive]);
       drawClipWithOverlay(active, tMs - clipStarts[active], snapCtx);
       drawClipWithOverlay(nextActive, tMs - clipStarts[nextActive], incomingCtx);
-      ctx.drawImage(snap, 0, 0);
-      ctx.save();
-      ctx.globalAlpha = easeInOut(fadeT);
-      ctx.drawImage(incoming, 0, 0);
-      ctx.restore();
+
+      if (transitionType === "flash") {
+        // White-flash transition. First half: outgoing clip blown out to
+        // white. Second half: incoming clip emerging from white. The eye
+        // reads it as a snap, not a fade.
+        const halfway = t < 0.5;
+        ctx.drawImage(halfway ? snap : incoming, 0, 0);
+        const flashAlpha = halfway ? t * 2 : (1 - t) * 2; // 0→1→0
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, flashAlpha);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+      } else if (transitionType === "zoom") {
+        // Zoom-punch: outgoing clip scales up while fading; incoming clip
+        // scales DOWN from oversize into place. Gives a snappy, punchy feel.
+        const eT = easeInOut(t);
+        // Outgoing — scale up + fade out
+        ctx.save();
+        ctx.globalAlpha = 1 - eT;
+        const outScale = 1 + eT * 0.18;
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(outScale, outScale);
+        ctx.drawImage(snap, -width / 2, -height / 2);
+        ctx.restore();
+        // Incoming — scale from oversize down to natural, fade in
+        ctx.save();
+        ctx.globalAlpha = eT;
+        const inScale = 1.18 - eT * 0.18;
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(inScale, inScale);
+        ctx.drawImage(incoming, -width / 2, -height / 2);
+        ctx.restore();
+      } else {
+        // Default: classic cross-fade.
+        ctx.drawImage(snap, 0, 0);
+        ctx.save();
+        ctx.globalAlpha = easeInOut(t);
+        ctx.drawImage(incoming, 0, 0);
+        ctx.restore();
+      }
       return;
     }
 

@@ -13,9 +13,8 @@ export interface FilterPreset {
   desc: string;
   /**
    * CSS filter string applied when drawing each video frame.
-   * Values are deliberately strong enough to be visible at preview size —
-   * "subtle" filters that need a colour calibrator to spot are useless
-   * here, the pro needs to SEE the app doing something.
+   * Tuned for VISIBILITY — the pro needs to see the app actually doing
+   * something. Roughly ~60% intensity vs the "subtle" baseline.
    */
   cssFilter: string;
   /** Optional rgba tint drawn on top with given alpha. */
@@ -35,43 +34,46 @@ export const FILTERS: Record<FilterId, FilterPreset> = {
     id: "warm",
     label: "Cald",
     desc: "Tonuri aurii, pielea arată natural.",
-    cssFilter: "saturate(1.18) contrast(1.08) brightness(1.04)",
-    tint: { color: "rgba(255, 165, 80, 1)", alpha: 0.14 },
+    cssFilter: "saturate(1.3) contrast(1.12) brightness(1.05)",
+    tint: { color: "rgba(255, 160, 70, 1)", alpha: 0.22 },
   },
   cool: {
     id: "cool",
     label: "Rece",
     desc: "Albastru editorial, look modern.",
-    cssFilter: "saturate(1.1) contrast(1.1) brightness(0.98)",
-    tint: { color: "rgba(100, 155, 220, 1)", alpha: 0.15 },
+    cssFilter: "saturate(1.2) contrast(1.15) brightness(0.96)",
+    tint: { color: "rgba(85, 145, 220, 1)", alpha: 0.24 },
   },
   bw: {
     id: "bw",
+    // True monochrome — no tint, no warm-up. The user asked for proper
+    // black-and-white; previously a 14% boost still let some colour slip
+    // through on bright frames.
     label: "Alb-Negru",
-    desc: "Monocrom elegant, contrast crescut.",
-    cssFilter: "grayscale(1) contrast(1.18) brightness(1.02)",
+    desc: "Monocrom pur, contrast puternic.",
+    cssFilter: "grayscale(1) contrast(1.25) brightness(1.0)",
   },
   vintage: {
     id: "vintage",
     label: "Vintage",
-    desc: "Sepia ușor, nostalgie discretă.",
-    cssFilter: "sepia(0.5) saturate(1.15) contrast(1.08)",
-    tint: { color: "rgba(190, 140, 80, 1)", alpha: 0.12 },
-    vignette: 0.35,
+    desc: "Sepia caldă, nostalgie discretă.",
+    cssFilter: "sepia(0.75) saturate(1.25) contrast(1.12)",
+    tint: { color: "rgba(195, 140, 75, 1)", alpha: 0.2 },
+    vignette: 0.5,
   },
   vivid: {
     id: "vivid",
     label: "Vivid",
     desc: "Culori vii, pop pentru produse.",
-    cssFilter: "saturate(1.4) contrast(1.14) brightness(1.03)",
+    cssFilter: "saturate(1.7) contrast(1.2) brightness(1.05)",
   },
   cinema: {
     id: "cinema",
     label: "Cinema",
-    desc: "Teal & orange subtil, look de film.",
-    cssFilter: "saturate(1.2) contrast(1.18) brightness(0.98)",
-    tint: { color: "rgba(255, 135, 60, 1)", alpha: 0.13 },
-    vignette: 0.4,
+    desc: "Teal & orange, look de film.",
+    cssFilter: "saturate(1.35) contrast(1.25) brightness(0.96)",
+    tint: { color: "rgba(255, 125, 50, 1)", alpha: 0.22 },
+    vignette: 0.55,
   },
 };
 

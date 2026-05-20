@@ -220,6 +220,7 @@ function Edit() {
           },
           transitionDuration:
             (TRANSITIONS[stylePack.transitionId]?.durationMs ?? 250) / 1000,
+          transitionType: stylePack.transitionId,
           filter: FILTERS[state.filterId] ?? FILTERS.none,
         },
         (p) =>
@@ -373,6 +374,7 @@ function Edit() {
                     )}
                     preset={livePreset}
                     transition={stylePack.transitionId}
+                    filter={FILTERS[state.filterId] ?? FILTERS.none}
                     handle={brand?.handle}
                     logoUrl={logoUrl}
                     activeIdx={Math.min(activeScene, clips.length - 1)}
@@ -415,6 +417,7 @@ function Edit() {
               )}
               preset={livePreset}
               transition={stylePack.transitionId}
+              filter={FILTERS[state.filterId] ?? FILTERS.none}
               handle={brand?.handle}
               logoUrl={logoUrl}
               activeIdx={Math.min(activeScene, clips.length - 1)}

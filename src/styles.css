@@ -234,13 +234,17 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
+  /* Matches the canvas renderer: incoming clip scales from 1.18 down. */
   @keyframes zoomIn {
-    from { opacity: 0; transform: scale(1.08); }
+    from { opacity: 0; transform: scale(1.18); }
     to   { opacity: 1; transform: scale(1); }
   }
-  @keyframes flash {
-    0%   { background: #fff; opacity: 1; }
-    100% { background: transparent; opacity: 1; }
+  /* Overlay-based flash. Use on a sibling element placed over the video,
+     NOT on the video itself (video content occludes element backgrounds). */
+  @keyframes flashOverlay {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 0; }
   }
 }
 
