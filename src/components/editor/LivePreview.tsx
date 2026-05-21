@@ -168,6 +168,18 @@ export function LivePreview({
             }}
           />
         )}
+        {/* Highlight boost — "screen" blend mode brightens highlights
+            (hair gloss, skin shine) without affecting shadows. */}
+        {filter?.highlightBoost && filter.highlightBoost > 0 && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "rgba(255, 250, 240, 1)",
+              opacity: filter.highlightBoost,
+              mixBlendMode: "screen",
+            }}
+          />
+        )}
       </div>
       {/* White flash overlay — fires per scene change. */}
       {showFlash && (

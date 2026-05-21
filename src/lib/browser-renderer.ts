@@ -144,6 +144,19 @@ function drawClipFrame(
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, width, height);
   }
+
+  // Optional hair-gloss / highlight boost — soft white overlay using
+  // "screen" composite. This only affects brighter areas (where hair
+  // shine and skin highlights live), leaving shadows untouched.
+  // Approximates a highlight boost without face/hair detection.
+  if (filter.highlightBoost && filter.highlightBoost > 0) {
+    ctx.save();
+    ctx.globalAlpha = filter.highlightBoost;
+    ctx.globalCompositeOperation = "screen";
+    ctx.fillStyle = "rgba(255, 250, 240, 1)";
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
 }
 
 // ---------- Asset loaders ----------
