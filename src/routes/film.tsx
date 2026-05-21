@@ -130,19 +130,24 @@ function Film() {
 
   const handleStop = async () => {
     const result = await rec.stop();
-    if (!result) return;
-    await saveClip({
-      scenarioId,
-      sceneIdx: idx,
-      blob: result.blob,
-      mimeType: result.mimeType,
-      duration: t || scene.duration,
-      finalUsageDuration: scene.finalUsageDuration,
-      createdAt: Date.now(),
-    });
+    // Always mark scene as captured — never block the user on a technical
+    // error. She can re-film if she wants, but never gets stuck.
+    if (result) {
+      try {
+        await saveClip({
+          scenarioId,
+          sceneIdx: idx,
+          blob: result.blob,
+          mimeType: result.mimeType,
+          duration: t || scene.duration,
+          finalUsageDuration: scene.finalUsageDuration,
+          createdAt: Date.now(),
+        });
+      } catch (err) {
+        console.warn("Failed to save clip:", err);
+      }
+    }
     setCaptured((s) => new Set(s).add(idx));
-    // No auto-advance: the user reviews the scene and presses "Next"
-    // themselves. Just reset the timer and show the guide again.
     setT(0);
     setShowGuide(true);
   };
@@ -626,7 +631,7 @@ function Film() {
 
           <button
             onClick={next}
-            disabled={idx === scenes.length - 1 && !sceneCaptured}
+            disabled={false}
             className="mt-3 w-full h-12 rounded-full text-sm font-medium flex items-center justify-center gap-2 text-white/85 bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-[0.98] disabled:opacity-40"
           >
             {idx === scenes.length - 1 ? (
@@ -636,7 +641,7 @@ function Film() {
               </>
             ) : (
               <>
-                "Următoarea scenă"
+                Următoarea scenă
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
