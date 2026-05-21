@@ -18,6 +18,7 @@ import {
 } from "@/data/shots";
 import { getProfessionId } from "@/lib/profession";
 import { setSelectedIdeaId } from "@/lib/selected-idea";
+import { playSelect } from "@/lib/ui-sound";
 
 export const Route = createFileRoute("/catalog")({
   component: Catalog,
@@ -61,6 +62,7 @@ function Catalog() {
     .filter((c) => c.subs.length > 0);
 
   const pick = (templateId: string) => {
+    playSelect();
     setSelectedIdeaId(templateId);
     nav({ to: "/generating" });
   };

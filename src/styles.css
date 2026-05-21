@@ -251,6 +251,24 @@
     20%  { opacity: 1; }
     100% { opacity: 0; }
   }
+  @keyframes glitchIn {
+    0%   { opacity: 0; transform: translateX(8px) scaleX(1.04); filter: hue-rotate(180deg) saturate(2); }
+    20%  { opacity: 1; transform: translateX(-6px); filter: hue-rotate(-120deg) saturate(2); }
+    50%  { transform: translateX(4px); filter: hue-rotate(60deg) saturate(1.5); }
+    100% { opacity: 1; transform: translateX(0); filter: none; }
+  }
+  @keyframes blurIn {
+    from { opacity: 0; filter: blur(20px); }
+    to   { opacity: 1; filter: blur(0); }
+  }
+  @keyframes slideIn {
+    from { opacity: 1; transform: translateX(100%); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes spinIn {
+    from { opacity: 0; transform: rotate(-180deg) scale(0.4); }
+    to   { opacity: 1; transform: rotate(0) scale(1); }
+  }
 }
 
 html, body { width: 100%; }

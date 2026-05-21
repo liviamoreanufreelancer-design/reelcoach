@@ -117,10 +117,14 @@ export function LivePreview({
   // Per-scene transition: re-mounts on idx change so the animation re-fires.
   // Durations match the canvas renderer (transitions.ts).
   const sceneAnimClass =
-    transition === "fade"  ? "animate-[fadeIn_300ms_ease-out]" :
-    transition === "zoom"  ? "animate-[zoomIn_250ms_ease-out]" :
-    transition === "flash" ? "animate-[fadeIn_80ms_ease-out]"  :
-                             "";
+    transition === "fade"   ? "animate-[fadeIn_300ms_ease-out]"   :
+    transition === "zoom"   ? "animate-[zoomIn_300ms_ease-out]"   :
+    transition === "flash"  ? "animate-[fadeIn_120ms_ease-out]"   :
+    transition === "glitch" ? "animate-[glitchIn_280ms_ease-out]" :
+    transition === "blur"   ? "animate-[blurIn_380ms_ease-out]"   :
+    transition === "slide"  ? "animate-[slideIn_340ms_cubic-bezier(0.22,1,0.36,1)]" :
+    transition === "spin"   ? "animate-[spinIn_380ms_cubic-bezier(0.22,1,0.36,1)]"  :
+                              "";
   // Flash transition uses an overlay sibling — see render below.
   const showFlash = transition === "flash";
 

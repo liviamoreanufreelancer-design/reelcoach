@@ -480,6 +480,78 @@ export async function renderReelInBrowser(
         ctx.scale(inScale, inScale);
         ctx.drawImage(incoming, -width / 2, -height / 2);
         ctx.restore();
+      } else if (transitionType === "glitch") {
+        // RGB-split + scanline glitch. The eye reads chaos, then resolves.
+        const eT = t;
+        ctx.drawImage(eT < 0.5 ? snap : incoming, 0, 0);
+        // RGB channel splits at peak in the middle, ease out toward ends
+        const peak = Math.sin(eT * Math.PI); // 0 → 1 → 0
+        const offset = Math.round(peak * 22);
+        if (offset > 0) {
+          ctx.save();
+          ctx.globalCompositeOperation = "screen";
+          ctx.globalAlpha = 0.55;
+          ctx.fillStyle = "rgba(255,0,80,1)";
+          ctx.fillRect(offset, 0, width - offset, height);
+          ctx.fillStyle = "rgba(0,200,255,1)";
+          ctx.fillRect(0, 0, width - offset, height);
+          ctx.restore();
+          // Scanline jitter — 4-6 horizontal slices shifted
+          ctx.save();
+          const slices = 5;
+          const sliceH = height / slices;
+          for (let i = 0; i < slices; i++) {
+            const sx = (Math.sin((eT * 12) + i * 1.7) * peak * 18) | 0;
+            ctx.drawImage(eT < 0.5 ? snap : incoming,
+              0, i * sliceH, width, sliceH,
+              sx, i * sliceH, width, sliceH);
+          }
+          ctx.restore();
+        }
+      } else if (transitionType === "blur") {
+        // Defocus the outgoing, focus the incoming. Dreamy & soft.
+        const eT = easeInOut(t);
+        // Outgoing: increasing blur, fading out
+        ctx.save();
+        ctx.filter = `blur(${eT * 20}px)`;
+        ctx.globalAlpha = 1 - eT;
+        ctx.drawImage(snap, 0, 0);
+        ctx.restore();
+        // Incoming: decreasing blur, fading in
+        ctx.save();
+        ctx.filter = `blur(${(1 - eT) * 20}px)`;
+        ctx.globalAlpha = eT;
+        ctx.drawImage(incoming, 0, 0);
+        ctx.restore();
+      } else if (transitionType === "slide") {
+        // Incoming slides in from the right; outgoing pushes off to left.
+        const eT = easeInOut(t);
+        const shift = eT * width;
+        ctx.drawImage(snap, -shift, 0);
+        ctx.drawImage(incoming, width - shift, 0);
+      } else if (transitionType === "spin") {
+        // Both clips rotate around the centre; outgoing zooms out while
+        // incoming zooms in. A 180° swap reads as a fast spin transition.
+        const eT = easeInOut(t);
+        const angle = eT * Math.PI; // 0 → π (180°)
+        // Outgoing — rotate + scale down + fade
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(angle);
+        const outScale = 1 - eT * 0.6;
+        ctx.scale(outScale, outScale);
+        ctx.globalAlpha = 1 - eT;
+        ctx.drawImage(snap, -width / 2, -height / 2);
+        ctx.restore();
+        // Incoming — rotate from -π → 0, scale up + fade in
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(angle - Math.PI);
+        const inScale = 0.4 + eT * 0.6;
+        ctx.scale(inScale, inScale);
+        ctx.globalAlpha = eT;
+        ctx.drawImage(incoming, -width / 2, -height / 2);
+        ctx.restore();
       } else {
         // Default: classic cross-fade.
         ctx.drawImage(snap, 0, 0);

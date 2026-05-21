@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX } from "lucide-react";
+import { useState } from "react";
+import { getSoundEnabled, setSoundEnabled, playTap } from "@/lib/ui-sound";
 import { CinematicBg } from "@/components/CinematicBg";
 import { PhoneShell } from "@/components/PhoneShell";
 import { StatusBar } from "@/components/StatusBar";
@@ -11,15 +13,31 @@ export const Route = createFileRoute("/")({
 });
 
 function Intro() {
+  const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    setSoundEnabled(next);
+    if (next) playTap();
+  };
   return (
     <PhoneShell>
       <CinematicBg src={intro} overlay={0.62} />
       <div className="relative z-10 flex flex-col h-full px-7 pb-10 pt-3">
         <StatusBar />
 
-        <div className="mt-8 flex items-center gap-2 text-[11px] tracking-[0.4em] text-white/65 uppercase">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E8D5B5] animate-pulse" />
-          ReelPilot
+        <div className="mt-8 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[11px] tracking-[0.4em] text-white/65 uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E8D5B5] animate-pulse" />
+            ReelPilot
+          </div>
+          <button
+            onClick={toggleSound}
+            className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 active:scale-95 transition"
+            aria-label={soundOn ? "Oprește sunetele" : "Pornește sunetele"}
+          >
+            {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </button>
         </div>
 
         <div className="mt-auto">

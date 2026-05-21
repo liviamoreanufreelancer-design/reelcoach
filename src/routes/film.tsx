@@ -8,6 +8,7 @@ import { getDifficulty, DIFFICULTIES, getMaterials } from "@/data/scenarios";
 import { useCamera } from "@/hooks/useCamera";
 import { useRecorder } from "@/hooks/useRecorder";
 import { saveClip, listClips } from "@/lib/clip-store";
+import { playCountdown, playRecordStart, playRecordStop, playSuccess, playNavForward } from "@/lib/ui-sound";
 
 export const Route = createFileRoute("/film")({
   component: Film,
@@ -95,6 +96,7 @@ function Film() {
   const beginRecording = () => {
     if (cam.state !== "ready" || !cam.streamRef.current) return;
     setCountdown(null);
+    playRecordStart();
     rec.start(cam.streamRef.current);
   };
 
@@ -118,6 +120,7 @@ function Film() {
       beginRecording();
       return;
     }
+    playCountdown();
     countdownRef.current = window.setTimeout(
       () => setCountdown((c) => (c === null ? null : c - 1)),
       1000,
@@ -129,9 +132,9 @@ function Film() {
   }, [countdown]);
 
   const handleStop = async () => {
+    console.log("[film] handleStop: scenarioId=", scenarioId, "sceneIdx=", idx);
     const result = await rec.stop();
-    // Always mark scene as captured — never block the user on a technical
-    // error. She can re-film if she wants, but never gets stuck.
+    console.log("[film] rec.stop result:", result ? `blob ${result.blob.size}B` : "null");
     if (result) {
       try {
         await saveClip({
@@ -143,11 +146,14 @@ function Film() {
           finalUsageDuration: scene.finalUsageDuration,
           createdAt: Date.now(),
         });
+        console.log("[film] saveClip OK for", scenarioId, idx);
       } catch (err) {
-        console.warn("Failed to save clip:", err);
+        console.error("[film] saveClip FAILED:", err);
       }
     }
+    playRecordStop();
     setCaptured((s) => new Set(s).add(idx));
+    playSuccess();
     setT(0);
     setShowGuide(true);
   };
@@ -175,6 +181,7 @@ function Film() {
   };
   const next = () => {
     if (rec.state === "recording") rec.cancel();
+    playNavForward();
     setT(0); setShowGuide(true);
     if (idx === scenes.length - 1) nav({ to: "/editing" });
     else setIdx((p) => p + 1);

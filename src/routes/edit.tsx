@@ -19,6 +19,7 @@ import { PhoneShell } from "@/components/PhoneShell";
 import { CinematicBg } from "@/components/CinematicBg";
 import { getSelectedScenario, getSelectedIdeaId } from "@/lib/selected-idea";
 import { listClips, clearScenario, type StoredClip } from "@/lib/clip-store";
+import { playSelect, playSuccess } from "@/lib/ui-sound";
 import type { ConcatProgress } from "@/lib/render-progress";
 import { useBrand } from "@/hooks/useBrand";
 import { useEditor, type CaptionState } from "@/hooks/useEditor";
@@ -76,6 +77,7 @@ function Edit() {
     void (async () => {
       if (!scenarioId) return;
       const list = await listClips(scenarioId);
+      console.log("[edit] listClips for", scenarioId, "→", list.length, "clips");
       setClips(list);
       setPhase((current) => {
         if (list.length === 0) return "no-clips";
@@ -229,6 +231,7 @@ function Edit() {
       blobRef.current = blob;
       setVideoUrl(URL.createObjectURL(blob));
       setPhase("done");
+      playSuccess();
     } catch (err) {
       setErrorMsg((err as Error)?.message ?? "Eroare la editare.");
       setPhase("error");
@@ -531,7 +534,7 @@ function Edit() {
                     return (
                       <button
                         key={f.id}
-                        onClick={() => setFilter(f.id)}
+                        onClick={() => { playSelect(); setFilter(f.id); }}
                         className={`flex-shrink-0 rounded-xl px-3 py-2 border transition text-left min-w-[88px] ${active ? "border-[#E8D5B5] bg-white/[0.07]" : "border-white/10 bg-white/[0.02]"}`}
                       >
                         <div
