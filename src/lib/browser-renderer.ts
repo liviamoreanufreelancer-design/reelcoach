@@ -135,6 +135,7 @@ function drawClipFrame(
 
   // Optional vignette
   if (filter.vignette && filter.vignette > 0) {
+    ctx.save();
     const g = ctx.createRadialGradient(
       width / 2, height / 2, width * 0.4,
       width / 2, height / 2, width * 0.85,
@@ -143,6 +144,7 @@ function drawClipFrame(
     g.addColorStop(1, `rgba(0,0,0,${filter.vignette})`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, width, height);
+    ctx.restore();
   }
 
   // Optional hair-gloss / highlight boost — soft white overlay using
@@ -405,14 +407,18 @@ export async function renderReelInBrowser(
     ctx.fillRect(0, 0, width, height);
 
     // ---- Intro ----
+    // Intro fades in (200ms), holds, then fades out to black. The first
+    // clip is NOT previewed during the intro fade-out — it appears via
+    // the normal single-clip path at tMs >= introMs, so it receives the
+    // exact same filter compositing as every other clip. Mixing alpha
+    // compositing with filter tint/vignette during fade-out subtly
+    // shifted the first clip's appearance — keep paths consistent.
     if (introMs > 0 && tMs < introMs) {
       let alpha = 1;
       if (tMs < 200) alpha = easeInOut(tMs / 200);
-      else if (tMs > introMs - transMs && transMs > 0 && loadedClips[0]) {
+      else if (tMs > introMs - transMs && transMs > 0) {
         const o = clamp01((tMs - (introMs - transMs)) / transMs);
         alpha = 1 - easeInOut(o);
-        ensurePlaying(0, 0);
-        drawClipWithOverlay(0, 0, ctx);
       }
       if (introImg) {
         ctx.save();
