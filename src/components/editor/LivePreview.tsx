@@ -148,9 +148,15 @@ export function LivePreview({
           autoPlay={playing}
           muted
           playsInline
+          {...{ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>}
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
           onEnded={handleEnded}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={filter ? { filter: filter.cssFilter } : undefined}
+          onClick={(e) => e.preventDefault()}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style={filter ? { filter: filter.cssFilter, WebkitTouchCallout: "none" } : { WebkitTouchCallout: "none" }}
         />
         {/* Vignette + tint, matching the canvas renderer. Pointer-events
             off so the side controls still work. */}

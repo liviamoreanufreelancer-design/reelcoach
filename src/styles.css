@@ -272,3 +272,24 @@
 }
 
 html, body { width: 100%; }
+
+/* ───── Hide native video controls on iOS Safari ─────
+   When a <video> is paused on iOS, Safari overlays its own UI (play,
+   fullscreen, mute) with a subtle darkening shim. That shim makes
+   paused scenes look like they have a heavier filter applied. These
+   rules remove that overlay entirely. */
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-overlay-play-button,
+video::-webkit-media-controls-fullscreen-button,
+video::-webkit-media-controls-mute-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+}
+video {
+  -webkit-tap-highlight-color: transparent;
+}
