@@ -54,10 +54,23 @@ export function LivePreview({
   // Without an explicit load() the element can stay black on first render
   // (the src attribute is set after the element is created and `autoPlay`
   // doesn't always re-trigger on source swaps inside an SPA).
+  //
+  // iOS Safari blocks autoplay until the user has interacted with the page.
+  // To handle that gracefully we retry once after a short delay (sometimes
+  // the second attempt lands AFTER the page-level gesture has propagated),
+  // and we also surface a "tap to play" affordance below via a click handler
+  // on the wrapper.
   useEffect(() => {
     const v = videoRef.current; if (!v || !url) return;
     try { v.load(); } catch { /* ignore */ }
-    if (playing) v.play().catch(() => { /* autoplay blocked */ });
+    if (!playing) return;
+    const tryPlay = () => v.play().catch(() => { /* will retry on user tap */ });
+    tryPlay();
+    // Retry once after a short delay — first attempt often happens before
+    // the DOM has fully settled after the URL change, second one tends to
+    // succeed when autoplay policy allows it.
+    const t = window.setTimeout(tryPlay, 120);
+    return () => window.clearTimeout(t);
   }, [url, playing]);
 
   // Pause when toggled off.
@@ -65,6 +78,16 @@ export function LivePreview({
     const v = videoRef.current; if (!v) return;
     if (!playing) v.pause();
   }, [playing]);
+
+  // Any tap inside the preview area also resumes playback. This covers the
+  // case where iOS blocked the initial autoplay — the first interaction
+  // with our UI is enough to unlock subsequent play() calls.
+  const handleWrapperTap = () => {
+    const v = videoRef.current;
+    if (v && v.paused && playing) {
+      v.play().catch(() => { /* still blocked, nothing more we can do */ });
+    }
+  };
 
 
 
@@ -137,7 +160,7 @@ export function LivePreview({
   }
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden group">
+    <div className="relative w-full h-full bg-black overflow-hidden group" onPointerDown={handleWrapperTap}>
       <div
         key={`scene-${idx}`}
         className={`absolute inset-0 ${sceneAnimClass}`}
