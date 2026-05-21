@@ -432,7 +432,7 @@ function Edit() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-3 flex gap-1 p-1 rounded-full glass shrink-0">
+        <div className="mt-3 flex gap-2 p-1 bg-white/5 rounded-full shrink-0">
           <TabBtn
             active={tab === "text"}
             onClick={() => setTab("text")}
@@ -662,7 +662,7 @@ function TabBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 h-9 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition ${active ? "bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black" : "text-white/65"}`}
+      className={`flex-1 py-3 rounded-full text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2 transition-all ${active ? "bg-[#E8D5B5] text-black" : "text-white/60"}`}
     >
       {icon} {label}
     </button>

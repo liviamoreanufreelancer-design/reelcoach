@@ -199,7 +199,7 @@ function Film() {
             <span className="w-10" />
           </div>
 
-          <div className="mt-7 px-1">
+          <div className="mt-4 px-1 flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-[#E8D5B5]/90 font-semibold">
               <Sparkles className="w-3 h-3" /> Ce vei obține
             </span>
@@ -220,30 +220,27 @@ function Film() {
                 <p className="text-white/90 text-[13px] italic leading-snug mt-1">„{scenario.goal}"</p>
               </div>
             )}
-          </div>
-
-          <div className="mt-5 flex items-center gap-2 px-1">
-            <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
-              {scenes.length} scene
-            </span>
-            <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
-              ~{totalDuration}s total
-            </span>
-            <span className={`text-[10px] tracking-[0.25em] uppercase px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/15 font-semibold ${diffTone}`} title={diffMeta.desc}>
-              <span className="inline-flex gap-[2px] mr-1.5 align-middle">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className={`w-[4px] h-[4px] rounded-full inline-block ${i < diffDots ? "bg-current" : "bg-current/25"}`} />
-                ))}
+            <div className="mt-4 flex items-center gap-2">
+              <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
+                {scenes.length} scene
               </span>
-              {diffMeta.short}
-            </span>
+              <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
+                ~{totalDuration}s total
+              </span>
+              <span className={`text-[10px] tracking-[0.25em] uppercase px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/15 font-semibold ${diffTone}`} title={diffMeta.desc}>
+                <span className="inline-flex gap-[2px] mr-1.5 align-middle">
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className={`w-[4px] h-[4px] rounded-full inline-block ${i < diffDots ? "bg-current" : "bg-current/25"}`} />
+                  ))}
+                </span>
+                {diffMeta.short}
+              </span>
+            </div>
           </div>
-
-          <div className="flex-1" />
 
           <button
             onClick={() => setPhase("materials")}
-            className="mt-2 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[13px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
+            className="mt-3 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-[#0F1419] font-semibold uppercase tracking-[0.15em] text-xs shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
           >
             Continuă <ArrowRight className="w-4 h-4" />
           </button>
@@ -284,7 +281,7 @@ function Film() {
             </p>
           </div>
 
-          <div className="mt-6 flex-1 overflow-y-auto -mx-1 px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex-1 min-h-0 overflow-y-auto -mx-1 px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {filmingTools.length > 0 ? (
               <div className="grid grid-cols-1 gap-2">
                 {filmingTools.map((tool) => (
@@ -305,7 +302,7 @@ function Film() {
 
           <button
             onClick={() => setPhase("film")}
-            className="mt-2 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[13px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
+            className="mt-3 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-[#0F1419] font-semibold uppercase tracking-[0.15em] text-xs shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <><Play className="w-4 h-4 fill-current" /> Sunt pregătit, începem</>
           </button>
@@ -494,6 +491,8 @@ function Film() {
           </div>
         )}
 
+        {/* Scrollable middle: instructions + must-show */}
+        <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* Hook + shot card — only once the camera is live and before recording */}
         {cam.state === "ready" && showGuide && !isRecording && (
           <>
@@ -560,11 +559,13 @@ function Film() {
           </>
         )}
 
-        {/* Bottom: timer + record + next */}
-        <div className="mt-auto">
+        </div>{/* end scroll area */}
+
+        {/* Bottom: timer + record + next — always visible, never scrolled */}
+        <div className="shrink-0 pt-2">
           <div className="flex items-baseline justify-center gap-2">
             <span
-              className={`font-display text-[64px] leading-none tracking-[-0.04em] ${isRecording ? "text-[#E8D5B5]" : "text-white"}`}
+              className={`font-display text-[48px] leading-none tracking-[-0.04em] ${isRecording ? "text-[#E8D5B5]" : "text-white"}`}
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
               {(scene.duration - t).toFixed(1)}
@@ -625,7 +626,7 @@ function Film() {
 
           <button
             onClick={next}
-            disabled={!sceneCaptured && idx === scenes.length - 1 ? !allDone : false}
+            disabled={idx === scenes.length - 1 && !sceneCaptured}
             className="mt-3 w-full h-12 rounded-full text-sm font-medium flex items-center justify-center gap-2 text-white/85 bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-[0.98] disabled:opacity-40"
           >
             {idx === scenes.length - 1 ? (
@@ -635,15 +636,13 @@ function Film() {
               </>
             ) : (
               <>
-                {sceneCaptured ? "Următoarea scenă" : "Sari peste"}
+                "Următoarea scenă"
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
 
-          <p className="mt-3 text-[10px] text-white/45 text-center">
-            Clipurile se salvează pe telefonul tău. Nu închide tab-ul până nu termini editarea.
-          </p>
+
         </div>
       </div>
     </PhoneShell>
