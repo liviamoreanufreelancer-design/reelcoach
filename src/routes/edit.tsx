@@ -24,7 +24,7 @@ import { useBrand } from "@/hooks/useBrand";
 import { useEditor, type CaptionState } from "@/hooks/useEditor";
 import { STYLE_PACKS } from "@/data/style-packs";
 import { TEXT_PRESETS } from "@/data/text-presets";
-import { DEFAULT_SCENARIO_ID, getScenarioById } from "@/data/scenarios";
+import type { Scenario } from "@/data/scenarios";
 import { FILTER_LIST, FILTERS } from "@/data/filters";
 import { TRANSITIONS } from "@/data/transitions";
 // music removed: users add audio when posting on TikTok / Instagram / Facebook
@@ -42,13 +42,9 @@ type Phase = "idle" | "processing" | "done" | "error" | "no-clips";
 type Tab = "text" | "style";
 
 function Edit() {
-  // Start from SSR-safe defaults, then hydrate from sessionStorage on mount.
-  const [scenario, setScenario] = useState(() => getScenarioById(DEFAULT_SCENARIO_ID)!);
-  const [scenarioId, setScenarioId] = useState(DEFAULT_SCENARIO_ID);
-  useEffect(() => {
-    setScenario(getSelectedScenario());
-    setScenarioId(getSelectedIdeaId());
-  }, []);
+  // Read directly from sessionStorage (sync) — no hydration race.
+  const [scenario] = useState(() => getSelectedScenario());
+  const [scenarioId] = useState(() => getSelectedIdeaId());
   const { brand, logoUrl } = useBrand();
 
   const defaultCaptions: CaptionState[] = useMemo(
