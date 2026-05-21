@@ -57,13 +57,13 @@ function Ideas() {
         {/* Header */}
         <div className="flex items-center justify-between px-1">
           <button
-            onClick={() => nav({ to: "/templates" })}
+            onClick={() => nav({ to: "/catalog" })}
             className="w-10 h-10 rounded-full glass flex items-center justify-center"
             aria-label="Înapoi"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+          <span className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-semibold">
             {meta.tag}
           </span>
           <span
@@ -80,11 +80,11 @@ function Ideas() {
             {meta.label.split(" / ").map((w, idx, arr) => (
               <span key={idx}>
                 {idx === arr.length - 1 && arr.length > 1 ? (
-                  <em className="italic font-editorial text-gold-gradient">{w}</em>
+                  <em className="italic font-editorial text-[#E8D5B5]">{w}</em>
                 ) : (
                   <span>{w}</span>
                 )}
-                {idx < arr.length - 1 && <span className="text-gold/60"> / </span>}
+                {idx < arr.length - 1 && <span className="text-[#E8D5B5]/60"> / </span>}
               </span>
             ))}
           </h1>
@@ -121,7 +121,7 @@ function Ideas() {
                   {s.keywords.slice(0, 3).map((k) => (
                     <span
                       key={k}
-                      className="text-[9px] tracking-[0.25em] uppercase text-gold-gradient font-semibold px-2 py-[3px] rounded-full border border-gold/25"
+                      className="text-[9px] tracking-[0.25em] uppercase text-[#E8D5B5] font-semibold px-2 py-[3px] rounded-full border border-[#E8D5B5]/25"
                     >
                       {k}
                     </span>
@@ -148,14 +148,14 @@ function Ideas() {
                   {s.scenes.map((sc, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] tracking-wider text-white/65 px-2 py-1 rounded-md bg-white/[0.04] border border-gold/15 font-medium"
+                      className="text-[10px] tracking-wider text-white/65 px-2 py-1 rounded-md bg-white/[0.04] border border-[#E8D5B5]/15 font-medium"
                       style={{ fontVariantNumeric: "tabular-nums" }}
                     >
                       Sc {idx + 1} · {sc.duration}s
                     </span>
                   ))}
                 </div>
-                <ArrowRight className="w-4 h-4 text-gold group-active:translate-x-0.5 transition-transform shrink-0 ml-2" />
+                <ArrowRight className="w-4 h-4 text-[#E8D5B5] group-active:translate-x-0.5 transition-transform shrink-0 ml-2" />
               </div>
               </div>
             </button>
@@ -183,7 +183,7 @@ function DifficultyBadge({ level }: { level: Difficulty }) {
     level === "easy"
       ? "text-emerald-300/90 border-emerald-300/30"
       : level === "medium"
-        ? "text-gold border-gold/35"
+        ? "text-[#E8D5B5] border-[#E8D5B5]/35"
         : "text-rose-300/90 border-rose-300/35";
   return (
     <span

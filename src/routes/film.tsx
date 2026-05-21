@@ -28,7 +28,7 @@ function Film() {
   const diffDots = diff === "easy" ? 1 : diff === "medium" ? 2 : 3;
   const diffTone =
     diff === "easy" ? "text-emerald-300/90"
-    : diff === "medium" ? "text-gold"
+    : diff === "medium" ? "text-[#E8D5B5]"
     : "text-rose-300/90";
 
   /** overview → materials → film */
@@ -193,14 +193,14 @@ function Film() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+            <span className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-semibold">
               Pasul 1 din {totalSteps}
             </span>
             <span className="w-10" />
           </div>
 
           <div className="mt-7 px-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-gold/90 font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-[#E8D5B5]/90 font-semibold">
               <Sparkles className="w-3 h-3" /> Ce vei obține
             </span>
             <h1 className="font-display text-[34px] leading-[1.05] text-white mt-3 tracking-[-0.02em]">
@@ -215,18 +215,18 @@ function Film() {
               </p>
             )}
             {scenario.goal && (
-              <div className="mt-4 rounded-2xl border border-gold/25 bg-gold/[0.06] px-4 py-3">
-                <p className="text-[9px] tracking-[0.4em] uppercase text-gold/90 font-semibold">Goal</p>
+              <div className="mt-4 rounded-2xl border border-[#E8D5B5]/25 bg-[#E8D5B5]/[0.06] px-4 py-3">
+                <p className="text-[9px] tracking-[0.4em] uppercase text-[#E8D5B5]/90 font-semibold">Goal</p>
                 <p className="text-white/90 text-[13px] italic leading-snug mt-1">„{scenario.goal}"</p>
               </div>
             )}
           </div>
 
           <div className="mt-5 flex items-center gap-2 px-1">
-            <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-gold/20" style={{ fontVariantNumeric: "tabular-nums" }}>
+            <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
               {scenes.length} scene
             </span>
-            <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-gold/20" style={{ fontVariantNumeric: "tabular-nums" }}>
+            <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
               ~{totalDuration}s total
             </span>
             <span className={`text-[10px] tracking-[0.25em] uppercase px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/15 font-semibold ${diffTone}`} title={diffMeta.desc}>
@@ -243,7 +243,7 @@ function Film() {
 
           <button
             onClick={() => setPhase("materials")}
-            className="mt-2 w-full h-14 rounded-full bg-gold-gradient text-black text-[13px] tracking-widest uppercase font-semibold shadow-gold active:scale-[0.98] flex items-center justify-center gap-2"
+            className="mt-2 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[13px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
           >
             Continuă <ArrowRight className="w-4 h-4" />
           </button>
@@ -266,18 +266,18 @@ function Film() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+            <span className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-semibold">
               Pasul 2 din {totalSteps}
             </span>
             <span className="w-10" />
           </div>
 
           <div className="mt-7 px-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-gold/90 font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-[#E8D5B5]/90 font-semibold">
               <Package className="w-3 h-3" /> De ce ai nevoie
             </span>
             <h1 className="font-display text-[34px] leading-[1.05] text-white mt-3 tracking-[-0.02em]">
-              Ai nevoie doar de <em className="italic font-editorial text-gold-gradient">atât</em>.
+              Ai nevoie doar de <em className="italic font-editorial text-[#E8D5B5]">atât</em>.
             </h1>
             <p className="text-white/65 text-[13px] mt-3 leading-relaxed">
               Pregătește-le pentru filmare. Restul faci ca de obicei.
@@ -289,8 +289,8 @@ function Film() {
               <div className="grid grid-cols-1 gap-2">
                 {filmingTools.map((tool) => (
                   <div key={tool} className="glass-lux rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-gold/15 flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5 text-gold" strokeWidth={3} />
+                    <div className="w-7 h-7 rounded-full bg-[#E8D5B5]/15 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 text-[#E8D5B5]" strokeWidth={3} />
                     </div>
                     <span className="text-white text-[13px]">{tool}</span>
                   </div>
@@ -305,7 +305,7 @@ function Film() {
 
           <button
             onClick={() => setPhase("film")}
-            className="mt-2 w-full h-14 rounded-full bg-gold-gradient text-black text-[13px] tracking-widest uppercase font-semibold shadow-gold active:scale-[0.98] flex items-center justify-center gap-2"
+            className="mt-2 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[13px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <><Play className="w-4 h-4 fill-current" /> Sunt pregătit, începem</>
           </button>
@@ -329,21 +329,21 @@ function Film() {
         className={`absolute inset-0 w-full h-full object-cover ${cam.facing === "user" ? "scale-x-[-1]" : ""}`}
       />
       {/* Dim overlay so UI is readable */}
-      <div className="absolute inset-0 bg-black/45 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none" />
 
       {/* 3-2-1 countdown — calm, full-screen, impossible to miss */}
       {countdown !== null && countdown > 0 && (
         <button
           onClick={cancelCountdown}
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/55 backdrop-blur-[2px]"
+          className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#0F1419]/80 backdrop-blur-lg"
           aria-label="Anulează countdown"
         >
-          <span className="text-[10px] tracking-[0.5em] uppercase text-gold/90 font-semibold">
+          <span className="text-[10px] tracking-[0.5em] uppercase text-[#E8D5B5]/90 font-semibold">
             Pregătește-te
           </span>
           <span
             key={countdown}
-            className="font-display text-[150px] leading-none text-gold-gradient animate-fade-in mt-2"
+            className="text-9xl font-bold text-[#E8D5B5] animate-fade-in mt-2"
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {countdown}
@@ -372,14 +372,14 @@ function Film() {
             </g>
           </svg>
           {/* corner brackets */}
-          <div className="absolute top-20 left-4 w-6 h-6 border-l-2 border-t-2 border-gold/70 rounded-tl" />
-          <div className="absolute top-20 right-4 w-6 h-6 border-r-2 border-t-2 border-gold/70 rounded-tr" />
-          <div className="absolute bottom-44 left-4 w-6 h-6 border-l-2 border-b-2 border-gold/70 rounded-bl" />
-          <div className="absolute bottom-44 right-4 w-6 h-6 border-r-2 border-b-2 border-gold/70 rounded-br" />
+          <div className="absolute top-20 left-4 w-6 h-6 border-l-2 border-t-2 border-[#E8D5B5]/70 rounded-tl" />
+          <div className="absolute top-20 right-4 w-6 h-6 border-r-2 border-t-2 border-[#E8D5B5]/70 rounded-tr" />
+          <div className="absolute bottom-44 left-4 w-6 h-6 border-l-2 border-b-2 border-[#E8D5B5]/70 rounded-bl" />
+          <div className="absolute bottom-44 right-4 w-6 h-6 border-r-2 border-b-2 border-[#E8D5B5]/70 rounded-br" />
           {/* persistent scene badge */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 h-6 rounded-full bg-black/55 backdrop-blur-md border border-gold/30 flex items-center gap-1.5">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm flex items-center gap-1.5">
             {isRecording && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
-            <span className="text-[9px] tracking-[0.3em] uppercase text-gold/95 font-semibold">
+            <span className="text-white/90 text-xs uppercase tracking-wider">
               Scena {idx + 1} din {scenes.length}
             </span>
           </div>
@@ -394,7 +394,7 @@ function Film() {
               <div key={i} className="relative flex-1 h-[3px] rounded-full bg-white/10 overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${
-                    i === idx && isRecording ? "shimmer-gold" : captured.has(i) ? "bg-gold-gradient" : i < idx ? "bg-gold-gradient" : ""
+                    i === idx && isRecording ? "shimmer-gold" : captured.has(i) ? "bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37]" : i < idx ? "bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37]" : ""
                   }`}
                   style={{
                     width:
@@ -416,7 +416,7 @@ function Film() {
               <ChevronLeft className="w-3.5 h-3.5" /> Înapoi
             </button>
             <div className="flex flex-col items-center gap-1 max-w-[60%]">
-              <span className="text-[11px] tracking-[0.3em] uppercase text-gold/90">
+              <span className="text-[11px] tracking-[0.3em] uppercase text-[#E8D5B5]/90">
                 Scena {idx + 1} din {scenes.length}
               </span>
               <span className="text-[10px] text-white/55 truncate w-full text-center">
@@ -457,7 +457,7 @@ function Film() {
             <button
               onClick={() => void cam.start("user")}
               disabled={cam.state === "requesting"}
-              className="mt-3 inline-flex items-center gap-2 px-5 h-10 rounded-full bg-gold-gradient text-black text-[11px] tracking-widest uppercase font-semibold shadow-gold active:scale-[0.98] disabled:opacity-50"
+              className="mt-3 inline-flex items-center gap-2 px-5 h-10 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[11px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] disabled:opacity-50"
             >
               <Camera className="w-3.5 h-3.5" />
               {cam.state === "requesting" ? "Se conectează…" : "Activează camera"}
@@ -467,7 +467,7 @@ function Film() {
         {(cam.state === "denied" || cam.state === "unsupported" || cam.state === "error" || cam.state === "disconnected") && (
           <div className="mt-8 mx-auto glass-lux rounded-2xl px-5 py-4 max-w-[90%]">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-gold mt-0.5 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-[#E8D5B5] mt-0.5 shrink-0" />
               <div className="flex-1">
                 <p className="text-white text-sm font-semibold">
                   {cam.state === "denied" ? "Acces refuzat la cameră"
@@ -484,7 +484,7 @@ function Film() {
                 </p>
                 <button
                   onClick={() => void cam.start()}
-                  className="mt-3 inline-flex items-center gap-2 px-4 h-9 rounded-full bg-gold-gradient text-black text-[11px] tracking-widest uppercase font-semibold shadow-gold active:scale-[0.98] transition-transform"
+                  className="mt-3 inline-flex items-center gap-2 px-4 h-9 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[11px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] transition-transform"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   {cam.state === "disconnected" ? "Reconectează camera" : "Reîncearcă"}
@@ -524,14 +524,15 @@ function Film() {
             {/* Instruction bullets - one physical action per line */}
             {scene.instructions && scene.instructions.length > 0 && (
               <div className="mt-5 glass-lux rounded-2xl px-4 py-4 animate-fade-in" style={{ animationDelay: "60ms", animationFillMode: "backwards" }}>
-                <p className="text-[10px] tracking-[0.35em] uppercase text-gold-gradient font-semibold mb-3">
-                  Pas cu pas
-                </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-4 bg-[#E8D5B5] rounded-full" />
+                  <p className="text-white/45 text-xs uppercase tracking-[0.3em]">Pas cu pas</p>
+                </div>
                 <ul className="space-y-3">
                   {scene.instructions.map((it, i) => (
-                    <li key={i} className="flex items-start gap-3 text-white text-[14px] leading-snug">
-                      <span className="mt-0.5 w-6 h-6 rounded-full bg-gold/15 text-gold flex items-center justify-center shrink-0">
-                        {instructionIcon(it)}
+                    <li key={i} className="flex items-start gap-3 text-white/80 leading-relaxed">
+                      <span className="mt-0.5 w-6 h-6 rounded-full bg-[#E8D5B5]/20 flex items-center justify-center shrink-0">
+                        {instructionNumber(i + 1)}
                       </span>
                       <span>{it}</span>
                     </li>
@@ -543,12 +544,12 @@ function Film() {
             {/* Framing checklist - what must be visible */}
             {scene.mustShow && scene.mustShow.length > 0 && (
               <div className="mt-3 glass-lux rounded-2xl px-4 py-3 animate-fade-in" style={{ animationDelay: "120ms", animationFillMode: "backwards" }}>
-                <p className="text-[10px] tracking-[0.35em] uppercase text-emerald-300/80 font-semibold mb-2 flex items-center gap-1.5">
+                <p className="text-[10px] tracking-[0.35em] uppercase text-white/45 uppercase tracking-[0.3em] mb-3 flex items-center gap-1.5">
                   <ListChecks className="w-3.5 h-3.5" /> Trebuie sa se vada
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {scene.mustShow.map((m, i) => (
-                    <span key={i} className="text-[12px] text-white/85 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10">
+                    <span key={i} className="text-[12px] text-white/85 px-2.5 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30">
                       {m}
                     </span>
                   ))}
@@ -563,7 +564,7 @@ function Film() {
         <div className="mt-auto">
           <div className="flex items-baseline justify-center gap-2">
             <span
-              className={`font-display text-[64px] leading-none tracking-[-0.04em] ${isRecording ? "text-gold-gradient" : "text-white"}`}
+              className={`font-display text-[64px] leading-none tracking-[-0.04em] ${isRecording ? "text-[#E8D5B5]" : "text-white"}`}
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
               {(scene.duration - t).toFixed(1)}
@@ -581,7 +582,7 @@ function Film() {
             onClick={isRecording ? handleStop : handleStart}
             disabled={cam.state !== "ready" || countdown !== null}
             className={`mt-4 w-full h-16 rounded-full font-semibold text-base flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-40 ${
-              isRecording ? "glass-lux text-white" : "bg-gold-gradient text-black shadow-gold"
+              isRecording ? "glass-lux text-white" : "bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-[#0F1419] shadow-[0_4px_24px_rgba(244,228,193,0.4)]"
             }`}
           >
             {isRecording ? (
@@ -657,9 +658,9 @@ function InstructionCard({
       className="glass-lux rounded-2xl px-4 py-3 flex gap-3 items-start animate-fade-in"
       style={{ animationDelay: `${delay}ms`, animationFillMode: "backwards" }}
     >
-      <div className="mt-0.5 w-8 h-8 rounded-full bg-gold/15 text-gold flex items-center justify-center shrink-0">{icon}</div>
+      <div className="mt-0.5 w-8 h-8 rounded-full bg-[#E8D5B5]/15 text-[#E8D5B5] flex items-center justify-center shrink-0">{icon}</div>
       <div className="min-w-0">
-        <p className="text-[10px] tracking-[0.35em] uppercase text-gold-gradient font-semibold">{label}</p>
+        <p className="text-[10px] tracking-[0.35em] uppercase text-[#E8D5B5] font-semibold">{label}</p>
         <p className="text-white text-[13px] leading-snug mt-0.5">{text}</p>
       </div>
     </div>
@@ -670,13 +671,13 @@ function InstructionCard({
 /** Pattern badge colors - matches SHOT_PATTERNS accent in shots.ts. */
 function patternBadge(patternId?: string): string {
   switch (patternId) {
-    case "before":     return "bg-sky-400/15 text-sky-300";
-    case "process":    return "bg-violet-400/15 text-violet-300";
+    case "before":     return "bg-blue-400/15 text-blue-300";
+    case "process":    return "bg-purple-400/15 text-purple-300";
     case "suspense":   return "bg-amber-400/15 text-amber-300";
-    case "reveal":     return "bg-gold/15 text-gold";
-    case "reaction":   return "bg-rose-400/15 text-rose-300";
+    case "reveal":     return "bg-[#E8D5B5]/15 text-[#E8D5B5]";
+    case "reaction":   return "bg-pink-400/15 text-pink-300";
     case "confidence": return "bg-emerald-400/15 text-emerald-300";
-    default:           return "bg-gold/15 text-gold";
+    default:           return "bg-[#E8D5B5]/15 text-[#E8D5B5]";
   }
 }
 
@@ -685,11 +686,6 @@ function patternBadge(patternId?: string): string {
  * visual anchor so the pro scans rather than reads - it never replaces
  * the text, so an imperfect guess is harmless.
  */
-function instructionIcon(text: string): React.ReactNode {
-  const t = text.toLowerCase();
-  if (/telefon|sprijin|camer|filmare/.test(t)) return <Smartphone className="w-3.5 h-3.5" />;
-  if (/lumin|geam|fereastr/.test(t))           return <Sparkles className="w-3.5 h-3.5" />;
-  if (/incadr|vad[ăa]|vada|verific|cadru/.test(t)) return <ListChecks className="w-3.5 h-3.5" />;
-  if (/cere|client|zamb|zâmb|atinga|atingă|intoarc|întoarc/.test(t)) return <Play className="w-3.5 h-3.5" />;
-  return <ChevronRight className="w-3.5 h-3.5" />;
+function instructionNumber(n: number): React.ReactNode {
+  return <span className="text-[#E8D5B5] text-xs font-medium">{n}</span>;
 }

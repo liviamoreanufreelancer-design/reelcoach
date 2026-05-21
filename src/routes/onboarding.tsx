@@ -82,13 +82,13 @@ function Onboarding() {
       logoBlob,
     });
     setSaving(false);
-    nav({ to: "/templates" });
+    nav({ to: "/catalog" });
   };
 
   const skip = () => {
     light();
     markOnboardingSkipped();
-    nav({ to: "/templates" });
+    nav({ to: "/catalog" });
   };
 
   const next = () => {
@@ -114,7 +114,7 @@ function Onboarding() {
           <button onClick={prev} className="w-10 h-10 rounded-full glass flex items-center justify-center" aria-label="Înapoi">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+          <span className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-semibold">
             Brand · {step + 1} / {TOTAL}
           </span>
           <button onClick={skip} className="w-10 h-10 rounded-full flex items-center justify-center text-white/55" aria-label="Sari peste">
@@ -125,7 +125,7 @@ function Onboarding() {
         {/* Progress dots */}
         <div className="flex gap-1.5 mt-4 px-1">
           {Array.from({ length: TOTAL }).map((_, i) => (
-            <span key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= step ? "bg-gold-gradient" : "bg-white/10"}`} />
+            <span key={i} className={`h-[3px] flex-1 rounded-full transition-all ${i <= step ? "bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37]" : "bg-white/10"}`} />
           ))}
         </div>
 
@@ -141,7 +141,7 @@ function Onboarding() {
         <button
           onClick={next}
           disabled={saving}
-          className="mt-4 h-14 rounded-full bg-gold-gradient text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-gold active:scale-[0.98] transition-transform disabled:opacity-60"
+          className="mt-4 h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] transition-transform disabled:opacity-60"
         >
           {step === TOTAL - 1 ? <>Salvează brand-ul <Check className="w-4 h-4" /></> : <>Continuă <ChevronRight className="w-4 h-4" /></>}
         </button>
@@ -159,7 +159,7 @@ function StepLogo({ logoUrl, onPick, fileRef }: { logoUrl: string | null; onPick
   return (
     <div>
       <h1 className="font-display text-[36px] leading-tight text-white">
-        Logo-ul tău <em className="italic text-gold-gradient">·</em>
+        Logo-ul tău <em className="italic text-[#E8D5B5]">·</em>
       </h1>
       <p className="text-white/60 text-sm mt-2 max-w-[22rem]">
         Apare discret în colț pe fiecare reel + pe ecranul final. PNG sau SVG, ideal cu fundal transparent.
@@ -172,7 +172,7 @@ function StepLogo({ logoUrl, onPick, fileRef }: { logoUrl: string | null; onPick
         onClick={() => fileRef.current?.click()}
         className="mt-6 w-full h-14 rounded-2xl glass-lux flex items-center justify-center gap-2 text-white"
       >
-        <Upload className="w-4 h-4 text-gold" />
+        <Upload className="w-4 h-4 text-[#E8D5B5]" />
         <span className="text-sm font-medium">{logoUrl ? "Schimbă logo-ul" : "Încarcă logo (PNG/SVG)"}</span>
       </button>
       <input
@@ -205,7 +205,7 @@ function StepIdentity({ name, handle, setName, setHandle }: { name: string; hand
   return (
     <div>
       <h1 className="font-display text-[36px] leading-tight text-white">
-        Cum te <em className="italic text-gold-gradient">cheamă</em>?
+        Cum te <em className="italic text-[#E8D5B5]">cheamă</em>?
       </h1>
       <p className="text-white/60 text-sm mt-2">Numele apare pe outro și sub video.</p>
       <div className="mt-8 space-y-4">
@@ -219,7 +219,7 @@ function StepIdentity({ name, handle, setName, setHandle }: { name: string; hand
         </Field>
         <Field label="Handle Instagram / TikTok">
           <div className="flex items-center gap-2">
-            <span className="text-gold text-[18px]">@</span>
+            <span className="text-[#E8D5B5] text-[18px]">@</span>
             <input
               value={handle}
               onChange={(e) => setHandle(e.target.value.replace(/^@/, "").replace(/\s+/g, "").slice(0, 30))}
@@ -238,7 +238,7 @@ function StepColors({ primary, accent, setPrimary, setAccent, onSuggest }: { pri
   return (
     <div>
       <h1 className="font-display text-[36px] leading-tight text-white">
-        Culorile <em className="italic text-gold-gradient">brandului</em>
+        Culorile <em className="italic text-[#E8D5B5]">brandului</em>
       </h1>
       <p className="text-white/60 text-sm mt-2">Folosite la text și outro. Sari peste = champagne gold default.</p>
       <div className="mt-8 grid grid-cols-2 gap-4">
@@ -247,7 +247,7 @@ function StepColors({ primary, accent, setPrimary, setAccent, onSuggest }: { pri
       </div>
       {onSuggest && (
         <button onClick={onSuggest} className="mt-5 w-full h-12 rounded-2xl glass flex items-center justify-center gap-2 text-white text-sm">
-          <Sparkles className="w-4 h-4 text-gold" />
+          <Sparkles className="w-4 h-4 text-[#E8D5B5]" />
           Sugerează după meserie
         </button>
       )}
@@ -290,7 +290,7 @@ function StepVibe({ vibe, setVibe, phone, setPhone, location, setLocation }: {
   return (
     <div>
       <h1 className="font-display text-[36px] leading-tight text-white">
-        Stil + <em className="italic text-gold-gradient">contact</em>
+        Stil + <em className="italic text-[#E8D5B5]">contact</em>
       </h1>
       <p className="text-white/60 text-sm mt-2">Stilul setează default-ul pentru text și tranziții. Contactul apare la final.</p>
 
@@ -302,11 +302,11 @@ function StepVibe({ vibe, setVibe, phone, setPhone, location, setLocation }: {
             <button
               key={v}
               onClick={() => setVibe(v)}
-              className={`w-full text-left rounded-2xl p-4 border transition ${active ? "border-gold bg-white/[0.06]" : "border-white/10 bg-white/[0.02]"}`}
+              className={`w-full text-left rounded-2xl p-4 border transition ${active ? "border-[#E8D5B5] bg-white/[0.06]" : "border-white/10 bg-white/[0.02]"}`}
             >
               <div className="flex items-center justify-between">
-                <span className={`font-display text-2xl ${active ? "text-gold-gradient" : "text-white"}`}>{sp.label}</span>
-                {active && <Check className="w-4 h-4 text-gold" />}
+                <span className={`font-display text-2xl ${active ? "text-[#E8D5B5]" : "text-white"}`}>{sp.label}</span>
+                {active && <Check className="w-4 h-4 text-[#E8D5B5]" />}
               </div>
               <p className="text-white/55 text-xs mt-1">{sp.desc}</p>
             </button>

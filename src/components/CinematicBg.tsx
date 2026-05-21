@@ -30,18 +30,19 @@ export function CinematicBg({
         } ${loaded ? "opacity-100" : "opacity-0"}`}
         style={{
           backgroundImage: `url(${src})`,
-          filter: blur ? "blur(28px) saturate(120%)" : "none",
+          filter: blur ? "blur(20px) saturate(120%)" : "none",
+          opacity: blur ? 0.2 : undefined,
           transform: blur ? "scale(1.15)" : undefined,
         }}
       />
-      {/* Warm cinematic gradient (not pure black) */}
+      {/* Midnight cinematic gradient */}
       <div
         className="absolute inset-0"
         style={{
           background: `linear-gradient(180deg,
-            rgba(8,5,3,${overlay * 0.78}) 0%,
-            rgba(15,10,6,${overlay * 0.30}) 38%,
-            rgba(8,5,3,${overlay * 0.92}) 100%)`,
+            rgba(15,20,25,${overlay * 0.78}) 0%,
+            rgba(15,20,25,${overlay * 0.30}) 38%,
+            rgba(10,13,17,${overlay * 0.92}) 100%)`,
         }}
       />
     </div>

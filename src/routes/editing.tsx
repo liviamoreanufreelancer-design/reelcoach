@@ -38,17 +38,17 @@ function Editing() {
       <div className="relative z-10 flex flex-col h-full px-7 pt-20 pb-12">
         <div className="flex flex-col items-center mt-6">
           <div className="relative w-28 h-28 flex items-center justify-center">
-            <span className="absolute inset-0 rounded-full border border-gold/30" />
-            <span className="absolute inset-2 rounded-full border-t border-gold animate-spin" style={{ animationDuration: "2s" }} />
-            <span className="absolute inset-6 rounded-full bg-gold/10 backdrop-blur" />
-            <Loader2 className="w-7 h-7 text-gold animate-spin" style={{ animationDuration: "1.4s" }} />
+            <span className="absolute inset-0 rounded-full border border-[#E8D5B5]/30" />
+            <span className="absolute inset-2 rounded-full border-t border-[#E8D5B5] animate-spin" style={{ animationDuration: "2s" }} />
+            <span className="absolute inset-6 rounded-full bg-[#E8D5B5]/10 backdrop-blur" />
+            <Loader2 className="w-7 h-7 text-[#E8D5B5] animate-spin" style={{ animationDuration: "1.4s" }} />
           </div>
-          <p className="mt-10 text-[11px] tracking-[0.45em] uppercase text-gold-gradient font-semibold">
+          <p className="mt-10 text-[11px] tracking-[0.45em] uppercase text-[#E8D5B5] font-semibold">
             ReelPilot AI
           </p>
           <h1 className="font-display text-[40px] text-center text-white mt-3 leading-[1.05]">
             Edităm<br />
-            <em className="italic font-editorial text-gold-gradient">reel-ul tău…</em>
+            <em className="italic font-editorial text-[#E8D5B5]">reel-ul tău…</em>
           </h1>
         </div>
 
@@ -64,13 +64,13 @@ function Editing() {
                 >
                   <div
                     className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                      isDone ? "bg-gold text-black" : isActive ? "border border-gold/60" : "border border-white/15"
+                      isDone ? "bg-[#E8D5B5] text-black" : isActive ? "border border-[#E8D5B5]/60" : "border border-white/15"
                     }`}
                   >
                     {isDone ? (
                       <Check className="w-4 h-4" strokeWidth={3} />
                     ) : isActive ? (
-                      <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-[#E8D5B5] animate-pulse" />
                     ) : (
                       <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
                     )}

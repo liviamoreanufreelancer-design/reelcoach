@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, VolumeX, Volume2 } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight } from "lucide-react";
 import type { CaptionState } from "@/hooks/useEditor";
 import type { TextPreset } from "@/data/text-presets";
 import type { TransitionId } from "@/data/transitions";
@@ -15,7 +15,6 @@ interface Props {
   filter?: FilterPreset;
   handle?: string;
   logoUrl?: string | null;
-  musicUrl?: string | null;
   /** Controlled scene index (e.g. when user taps a scene in the list). */
   activeIdx?: number;
   onSceneChange?: (idx: number) => void;
@@ -27,14 +26,12 @@ interface Props {
  */
 export function LivePreview({
   clips, captions, preset, transition, filter,
-  handle, logoUrl, musicUrl,
+  handle, logoUrl,
   activeIdx, onSceneChange,
 }: Props) {
   const [idx, setIdx] = useState(activeIdx ?? 0);
   const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Sync external scene selection.
   useEffect(() => {
@@ -69,13 +66,7 @@ export function LivePreview({
     if (!playing) v.pause();
   }, [playing]);
 
-  // Music sync with playback state.
-  useEffect(() => {
-    const a = audioRef.current; if (!a) return;
-    a.volume = 0.4;
-    if (playing && musicUrl && !muted) a.play().catch(() => { /* ignore */ });
-    else a.pause();
-  }, [playing, musicUrl, muted]);
+
 
   const cap = captions[idx];
   const captionText = cap?.text?.trim();
@@ -181,9 +172,7 @@ export function LivePreview({
           className="absolute inset-0 bg-white pointer-events-none animate-[flashOverlay_180ms_ease-out]"
         />
       )}
-      {musicUrl && (
-        <audio ref={audioRef} src={musicUrl} loop preload="auto" />
-      )}
+
 
       {/* Caption overlay */}
       {captionText && (
@@ -219,7 +208,7 @@ export function LivePreview({
           <button
             key={i}
             onClick={() => { setIdx(i); onSceneChange?.(i); }}
-            className={`h-[3px] rounded-full transition-all ${i === idx ? "w-5 bg-gold" : "w-2 bg-white/35"}`}
+            className={`h-[3px] rounded-full transition-all ${i === idx ? "w-5 bg-[#E8D5B5]" : "w-2 bg-white/35"}`}
             aria-label={`Scena ${i + 1}`}
           />
         ))}
@@ -250,15 +239,7 @@ export function LivePreview({
         >
           {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
         </button>
-        {musicUrl && (
-          <button
-            onClick={() => setMuted((m) => !m)}
-            className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center"
-            aria-label={muted ? "Activează muzica" : "Mut"}
-          >
-            {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-          </button>
-        )}
+
       </div>
     </div>
   );

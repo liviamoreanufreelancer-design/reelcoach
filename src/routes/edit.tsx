@@ -9,7 +9,7 @@ import {
   Check,
   Type,
   Sparkles,
-  Music,
+
   ChevronLeft,
   RefreshCw,
   Instagram,
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/edit")({
 });
 
 type Phase = "idle" | "processing" | "done" | "error" | "no-clips";
-type Tab = "text" | "style" | "music";
+type Tab = "text" | "style";
 
 function Edit() {
   // Start from SSR-safe defaults, then hydrate from sessionStorage on mount.
@@ -342,7 +342,7 @@ function Edit() {
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <div className="text-center">
-            <p className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+            <p className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-medium">
               Pasul 02 · Editare
             </p>
             <p className="text-white text-xs mt-0.5 truncate max-w-[200px]">{scenario.title}</p>
@@ -352,13 +352,13 @@ function Edit() {
             className="w-10 h-10 rounded-full glass flex items-center justify-center"
             aria-label="Brand"
           >
-            <Sparkles className="w-4 h-4 text-gold" />
+            <Sparkles className="w-4 h-4 text-[#E8D5B5]" />
           </Link>
         </div>
 
         {/* Preview */}
         <div
-          className="mt-3 mx-auto rounded-xl overflow-hidden border border-gold/20 shadow-gold bg-black shrink-0"
+          className="mt-3 mx-auto rounded-xl overflow-hidden border border-[#E8D5B5]/20 shadow-[0_4px_24px_rgba(244,228,193,0.4)] bg-black shrink-0"
           style={{ aspectRatio: "9/16", width: "min(42vw, 165px)" }}
         >
           {phase === "done" && videoUrl ? (
@@ -383,16 +383,16 @@ function Edit() {
                 </div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <FilmIcon className="w-8 h-8 text-gold animate-pulse" />
+                  <FilmIcon className="w-8 h-8 text-[#E8D5B5] animate-pulse" />
                 </div>
               )}
               <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/85 via-black/55 to-transparent">
-                <p className="text-[9px] tracking-[0.25em] uppercase text-gold/90 text-center mb-1.5">
+                <p className="text-[9px] tracking-[0.25em] uppercase text-[#E8D5B5]/90 text-center mb-1.5">
                   Preview live · randez calitate finală
                 </p>
                 <div className="h-[3px] bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gold-gradient transition-all duration-200"
+                    className="h-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] transition-all duration-200"
                     style={{ width: `${Math.min(100, Math.max(2, Math.round(progress.pct)))}%` }}
                   />
                 </div>
@@ -425,7 +425,7 @@ function Edit() {
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-white/45 text-[11px] tracking-widest uppercase gap-2 p-3 text-center">
-              <FilmIcon className="w-7 h-7 text-gold/70" />
+              <FilmIcon className="w-7 h-7 text-[#E8D5B5]/70" />
               <span>Se încarcă…</span>
             </div>
           )}
@@ -445,12 +445,7 @@ function Edit() {
             icon={<Sparkles className="w-3.5 h-3.5" />}
             label="Stil"
           />
-          <TabBtn
-            active={tab === "music"}
-            onClick={() => setTab("music")}
-            icon={<Music className="w-3.5 h-3.5" />}
-            label="Muzică"
-          />
+
         </div>
 
         {/* Tab content */}
@@ -466,7 +461,7 @@ function Edit() {
                     className={`glass-lux rounded-2xl p-3 transition cursor-pointer ${activeScene === i ? "ring-1 ring-gold/60" : ""}`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] tracking-widest uppercase text-gold/80">
+                      <span className="text-[10px] tracking-widest uppercase text-[#E8D5B5]/80">
                         Scena {i + 1}
                       </span>
                       <div className="flex gap-1">
@@ -478,7 +473,7 @@ function Edit() {
                               updateCaption(i, { position: pos });
                               setActiveScene(i);
                             }}
-                            className={`text-[10px] px-2 py-1 rounded-full ${cap.position === pos ? "bg-gold text-black" : "bg-white/10 text-white/60"}`}
+                            className={`text-[10px] px-2 py-1 rounded-full ${cap.position === pos ? "bg-[#E8D5B5] text-black" : "bg-white/10 text-white/60"}`}
                           >
                             {pos === "top" ? "sus" : pos === "center" ? "centru" : "jos"}
                           </button>
@@ -502,7 +497,7 @@ function Edit() {
           {state && tab === "style" && (
             <div className="space-y-4">
               <div>
-                <p className="text-[10px] tracking-widest uppercase text-gold/80 mb-2 px-1">
+                <p className="text-[10px] tracking-widest uppercase text-[#E8D5B5]/80 mb-2 px-1">
                   Pachet stil
                 </p>
                 <div className="space-y-2">
@@ -513,15 +508,15 @@ function Edit() {
                       <button
                         key={v}
                         onClick={() => setStyle(v)}
-                        className={`w-full text-left rounded-2xl p-4 border transition ${active ? "border-gold bg-white/[0.06]" : "border-white/10 bg-white/[0.02]"}`}
+                        className={`w-full text-left rounded-2xl p-4 border transition ${active ? "border-[#E8D5B5] bg-white/[0.06]" : "border-white/10 bg-white/[0.02]"}`}
                       >
                         <div className="flex items-center justify-between">
                           <span
-                            className={`font-display text-2xl ${active ? "text-gold-gradient" : "text-white"}`}
+                            className={`font-display text-2xl ${active ? "text-[#E8D5B5]-gradient" : "text-white"}`}
                           >
                             {sp.label}
                           </span>
-                          {active && <Check className="w-4 h-4 text-gold" />}
+                          {active && <Check className="w-4 h-4 text-[#E8D5B5]" />}
                         </div>
                         <p className="text-white/55 text-xs mt-1">{sp.desc}</p>
                       </button>
@@ -531,7 +526,7 @@ function Edit() {
               </div>
 
               <div>
-                <p className="text-[10px] tracking-widest uppercase text-gold/80 mb-2 px-1">
+                <p className="text-[10px] tracking-widest uppercase text-[#E8D5B5]/80 mb-2 px-1">
                   Filtru culoare
                 </p>
                 <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -541,7 +536,7 @@ function Edit() {
                       <button
                         key={f.id}
                         onClick={() => setFilter(f.id)}
-                        className={`flex-shrink-0 rounded-xl px-3 py-2 border transition text-left min-w-[88px] ${active ? "border-gold bg-white/[0.07]" : "border-white/10 bg-white/[0.02]"}`}
+                        className={`flex-shrink-0 rounded-xl px-3 py-2 border transition text-left min-w-[88px] ${active ? "border-[#E8D5B5] bg-white/[0.07]" : "border-white/10 bg-white/[0.02]"}`}
                       >
                         <div
                           className="w-full h-12 rounded-md mb-1.5 border border-white/10"
@@ -552,10 +547,10 @@ function Edit() {
                           }}
                         />
                         <div className="flex items-center justify-between gap-1">
-                          <span className={`text-xs font-medium ${active ? "text-gold" : "text-white/85"}`}>
+                          <span className={`text-xs font-medium ${active ? "text-[#E8D5B5]" : "text-white/85"}`}>
                             {f.label}
                           </span>
-                          {active && <Check className="w-3 h-3 text-gold" />}
+                          {active && <Check className="w-3 h-3 text-[#E8D5B5]" />}
                         </div>
                       </button>
                     );
@@ -567,40 +562,14 @@ function Edit() {
               </div>
             </div>
           )}
-
-          {state && tab === "music" && (
-            <div className="space-y-3">
-              <div className="rounded-2xl p-5 border border-gold/30 bg-white/[0.04] text-center">
-                <span className="inline-flex w-12 h-12 rounded-full bg-gold/15 text-gold items-center justify-center mb-3">
-                  <Music className="w-5 h-5" />
-                </span>
-                <p className="text-white text-sm font-medium">Muzica se adaugă pe rețea</p>
-                <p className="text-white/55 text-xs mt-2 leading-relaxed">
-                  Reel-ul se exportă fără sunet. Adaugă muzica direct din TikTok, Instagram sau
-                  Facebook când postezi — vei avea acces la întreaga lor bibliotecă oficială și fără
-                  probleme de copyright.
-                </p>
-              </div>
-              <div className="rounded-2xl p-3.5 border border-white/10 bg-white/[0.02]">
-                <p className="text-[10px] tracking-widest uppercase text-gold/80 mb-2">
-                  Cum procedezi
-                </p>
-                <ol className="text-white/70 text-xs space-y-1.5 list-decimal list-inside leading-relaxed">
-                  <li>Descarcă MP4-ul generat aici.</li>
-                  <li>Deschide aplicația (TikTok / Instagram / Facebook) și încarcă videoul.</li>
-                  <li>Alege piesa din librăria platformei și publică.</li>
-                </ol>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Bottom actions */}
         <div className="mt-3 shrink-0">
           {phase === "done" ? (
             <div className="space-y-2">
-              <div className="rounded-2xl border border-gold/25 bg-white/[0.03] p-3">
-                <p className="text-[10px] tracking-[0.3em] uppercase text-gold/80 text-center mb-2">
+              <div className="rounded-2xl border border-[#E8D5B5]/25 bg-white/[0.03] p-3">
+                <p className="text-[10px] tracking-[0.3em] uppercase text-[#E8D5B5]/80 text-center mb-2">
                   Postează cu muzică oficială
                 </p>
                 <div className="grid grid-cols-3 gap-2">
@@ -634,7 +603,7 @@ function Edit() {
               <div className="flex gap-2">
                 <button
                   onClick={() => share()}
-                  className="flex-1 h-11 rounded-full bg-gold-gradient text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-gold active:scale-[0.98]"
+                  className="flex-1 h-11 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98]"
                 >
                   <Share2 className="w-4 h-4" /> Altă aplicație
                 </button>
@@ -661,7 +630,7 @@ function Edit() {
             <div className="space-y-2">
               <button
                 onClick={generate}
-                className="w-full h-14 rounded-full bg-gold-gradient text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-gold active:scale-[0.98]"
+                className="w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98]"
               >
                 <Sparkles className="w-4 h-4" /> Generează Reel
               </button>
@@ -693,7 +662,7 @@ function TabBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 h-9 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition ${active ? "bg-gold-gradient text-black" : "text-white/65"}`}
+      className={`flex-1 h-9 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition ${active ? "bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black" : "text-white/65"}`}
     >
       {icon} {label}
     </button>
@@ -704,11 +673,11 @@ function NoClips() {
   return (
     <PhoneShell>
       <div className="relative z-10 flex flex-col h-full items-center justify-center px-6 text-center bg-background">
-        <AlertCircle className="w-8 h-8 text-gold" />
+        <AlertCircle className="w-8 h-8 text-[#E8D5B5]" />
         <p className="text-white text-sm mt-4">Nu există clipuri salvate pentru acest scenariu.</p>
         <Link
           to="/film"
-          className="mt-5 inline-flex h-12 px-6 rounded-full bg-gold-gradient text-black text-sm font-semibold items-center"
+          className="mt-5 inline-flex h-12 px-6 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-sm font-semibold items-center"
         >
           Începe filmarea
         </Link>

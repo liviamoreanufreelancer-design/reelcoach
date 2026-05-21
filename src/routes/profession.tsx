@@ -38,7 +38,7 @@ function ProfessionPicker() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-[10px] tracking-[0.4em] uppercase text-gold-gradient font-semibold">
+          <span className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-semibold">
             Pasul 01 / 02
           </span>
           <span className="w-10" />
@@ -47,7 +47,7 @@ function ProfessionPicker() {
         <div className="mt-7 px-1">
           <h1 className="h1-lux text-[46px] text-white">
             Cu ce<br />
-            <em className="italic font-editorial text-gold-gradient">lucrezi?</em>
+            <em className="italic font-editorial text-[#E8D5B5]">lucrezi?</em>
           </h1>
           <p className="mt-3 text-white/65 text-[14px] leading-relaxed max-w-[20rem]">
             Alege meseria ta. Toate ideile vor fi personalizate pe ce faci tu.
@@ -62,11 +62,11 @@ function ProfessionPicker() {
               className="group w-full text-left glass-lux rounded-2xl p-4 mb-2.5 flex items-center gap-4"
               style={{ animationDelay: `${i * 80}ms` }}
             >
-              <span className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-gold shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <span className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#E8D5B5] shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <ProfessionIcon id={p.id} className="w-6 h-6" />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] tracking-[0.35em] uppercase text-gold-gradient font-semibold">
+                <div className="text-[10px] tracking-[0.35em] uppercase text-[#E8D5B5] font-semibold">
                   {p.tag}
                 </div>
                 <div className="font-editorial text-[24px] leading-tight text-white mt-0.5 tracking-[-0.02em]">
@@ -76,7 +76,7 @@ function ProfessionPicker() {
                   {p.desc}
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-gold/80 shrink-0 group-active:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-[#E8D5B5]/80 shrink-0 group-active:translate-x-0.5 transition-transform" />
             </button>
           ))}
         </div>
