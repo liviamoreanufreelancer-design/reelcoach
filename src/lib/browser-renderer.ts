@@ -675,35 +675,38 @@ function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: n
   ctx.closePath();
   ctx.fill();
   // soft glow
-  ctx.globalAlpha = alpha * 0.5;
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 1.6);
-  grad.addColorStop(0, "rgba(244,228,193,0.55)");
-  grad.addColorStop(0.5, "rgba(244,228,193,0.18)");
+  ctx.globalAlpha = alpha * 0.35;
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 1.4);
+  grad.addColorStop(0, "rgba(244,228,193,0.35)");
+  grad.addColorStop(0.5, "rgba(244,228,193,0.1)");
   grad.addColorStop(1, "rgba(244,228,193,0)");
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(cx, cy, size * 1.6, 0, Math.PI * 2);
+  ctx.arc(cx, cy, size * 1.4, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
 
-/** Sparkle highlights — 5 stars that pop in/out at staggered times. */
+/**
+ * Sparkle highlights — 3 very subtle stars. The intent is "noticed on
+ * second look", not "look at me". Small, slow cycle, low peak alpha.
+ */
 function drawSparkles(ctx: CanvasRenderingContext2D, localMs: number, clipMs: number, w: number, h: number) {
-  const count = 5;
+  const count = 3;
   for (let i = 0; i < count; i++) {
-    const cycleMs = 1100;
-    const phase = ((localMs + i * 220) % cycleMs) / cycleMs;
+    // 2-second cycle, well staggered so only one is near-peak at a time.
+    const cycleMs = 2000;
+    const phase = ((localMs + i * 700) % cycleMs) / cycleMs;
     let alpha: number;
-    if (phase < 0.3) alpha = phase / 0.3;
-    else if (phase < 0.7) alpha = 1;
-    else alpha = 1 - (phase - 0.7) / 0.3;
+    if (phase < 0.4) alpha = phase / 0.4;
+    else if (phase < 0.6) alpha = 1;
+    else alpha = 1 - (phase - 0.6) / 0.4;
     if (alpha <= 0) continue;
-    const x = (0.15 + rand(i * 7.3) * 0.7) * w;
-    const y = (0.15 + rand(i * 11.1) * 0.65) * h;
-    // Mid-sized stars — 20-36px @ 1080px reference. Visible accents,
-    // not full-coverage glitter.
-    const size = (20 + rand(i * 3.7) * 16) * (w / 1080);
-    drawStar(ctx, x, y, size, alpha * 0.85);
+    const x = (0.2 + rand(i * 7.3) * 0.6) * w;
+    const y = (0.2 + rand(i * 11.1) * 0.55) * h;
+    // Small stars — 14-22px @ 1080px reference. Half the previous size.
+    const size = (14 + rand(i * 3.7) * 8) * (w / 1080);
+    drawStar(ctx, x, y, size, alpha * 0.55);
   }
 }
 

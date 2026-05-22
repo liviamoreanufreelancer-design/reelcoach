@@ -318,14 +318,12 @@ function PremiumEffect({ kind }: { kind?: string }) {
 }
 
 function SparkleEffect() {
-  // 5 staggered sparkles — visible without overwhelming. Sized to feel
-  // like accents on the highlights, not a full overlay.
+  // 3 very subtle sparkles — meant as a quiet detail, noticed only by
+  // someone looking carefully. Small, slow, low opacity.
   const positions = [
-    { top: "22%", left: "28%", size: 22, delay: 0 },
-    { top: "38%", left: "62%", size: 17, delay: 220 },
-    { top: "55%", left: "34%", size: 24, delay: 440 },
-    { top: "30%", left: "70%", size: 18, delay: 660 },
-    { top: "62%", left: "60%", size: 20, delay: 880 },
+    { top: "30%", left: "32%", size: 14, delay: 0 },
+    { top: "50%", left: "62%", size: 11, delay: 700 },
+    { top: "68%", left: "38%", size: 13, delay: 1400 },
   ];
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -339,21 +337,21 @@ function SparkleEffect() {
             position: "absolute",
             top: p.top,
             left: p.left,
-            animation: "rdp-sparkle 1.1s ease-in-out infinite",
+            animation: "rdp-sparkle 2s ease-in-out infinite",
             animationDelay: `${p.delay}ms`,
-            filter: "drop-shadow(0 0 5px rgba(244,228,193,0.7)) drop-shadow(0 0 10px rgba(244,228,193,0.25))",
+            filter: "drop-shadow(0 0 3px rgba(244,228,193,0.5))",
           }}
         >
           <path
             d="M12 0 L13.5 10.5 L24 12 L13.5 13.5 L12 24 L10.5 13.5 L0 12 L10.5 10.5 Z"
-            fill="rgba(244,228,193,0.95)"
+            fill="rgba(244,228,193,0.7)"
           />
         </svg>
       ))}
       <style>{`
         @keyframes rdp-sparkle {
           0%, 100% { opacity: 0; transform: scale(0.4); }
-          40%, 60% { opacity: 0.85; transform: scale(1); }
+          45%, 55% { opacity: 0.6; transform: scale(1); }
         }
       `}</style>
     </div>
