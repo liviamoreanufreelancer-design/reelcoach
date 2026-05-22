@@ -3,6 +3,7 @@ import { get, set } from "idb-keyval";
 import type { TextPosition } from "@/data/text-presets";
 import type { Vibe } from "@/lib/brand-store";
 import type { FilterId } from "@/data/filters";
+import type { TransitionId } from "@/data/transitions";
 
 export interface CaptionState {
   text: string;
@@ -14,6 +15,8 @@ export interface EditorState {
   captions: CaptionState[];
   styleId: Vibe;
   filterId: FilterId;
+  /** Optional override for transition. If null, use the style pack's default. */
+  transitionId: TransitionId | null;
   trackId: string | null;     // null = no music
   updatedAt: number;
 }
@@ -28,11 +31,12 @@ export function useEditor(scenarioId: string, defaults: { captions: CaptionState
     void (async () => {
       const stored = (await get(key(scenarioId))) as EditorState | undefined;
       if (cancelled) return;
-      setState(stored ? { ...stored, filterId: stored.filterId ?? "none" } : {
+      setState(stored ? { ...stored, filterId: stored.filterId ?? "none", transitionId: stored.transitionId ?? null } : {
         scenarioId,
         captions: defaults.captions,
         styleId: defaults.vibe,
         filterId: "none",
+        transitionId: null,
         trackId: null,
         updatedAt: Date.now(),
       });
@@ -67,5 +71,10 @@ export function useEditor(scenarioId: string, defaults: { captions: CaptionState
     void persist({ ...state, filterId, updatedAt: Date.now() });
   }, [state, persist]);
 
-  return { state, updateCaption, setStyle, setTrack, setFilter };
+  const setTransition = useCallback((transitionId: TransitionId | null) => {
+    if (!state) return;
+    void persist({ ...state, transitionId, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  return { state, updateCaption, setStyle, setTrack, setFilter, setTransition };
 }

@@ -27,7 +27,7 @@ import { STYLE_PACKS } from "@/data/style-packs";
 import { TEXT_PRESETS } from "@/data/text-presets";
 import type { Scenario } from "@/data/scenarios";
 import { FILTER_GROUPS, FILTERS } from "@/data/filters";
-import { TRANSITIONS } from "@/data/transitions";
+import { TRANSITIONS, TRANSITION_LIST } from "@/data/transitions";
 // music removed: users add audio when posting on TikTok / Instagram / Facebook
 import type { Vibe } from "@/lib/brand-store";
 import { renderOverlay, renderOutro, renderIntro, logoToBitmap } from "@/lib/overlay-renderer";
@@ -56,7 +56,7 @@ function Edit() {
       })),
     [scenario],
   );
-  const { state, updateCaption, setStyle, setFilter } = useEditor(scenarioId, {
+  const { state, updateCaption, setStyle, setFilter, setTransition } = useEditor(scenarioId, {
     captions: defaultCaptions,
     vibe: brand?.vibe ?? "luxury",
   });
@@ -93,6 +93,8 @@ function Edit() {
   // Music removed — users add audio from TikTok / Instagram / Facebook when posting.
 
   const stylePack = state ? STYLE_PACKS[state.styleId] : STYLE_PACKS.luxury;
+  // User's transition choice takes precedence over the style pack default.
+  const effectiveTransitionId = state?.transitionId ?? stylePack.transitionId;
   const livePreset = TEXT_PRESETS[stylePack.textPresetId] ?? TEXT_PRESETS.hookBold;
 
   async function generate() {
@@ -212,13 +214,13 @@ function Edit() {
           effects: {
             // "cut" is the no-transition option — disable transitions entirely
             // so the renderer doesn't blend frames at all.
-            transitions: stylePack.transitionId !== "cut",
+            transitions: effectiveTransitionId !== "cut",
             kenBurns: true,
             intro: true,
           },
           transitionDuration:
-            (TRANSITIONS[stylePack.transitionId]?.durationMs ?? 250) / 1000,
-          transitionType: stylePack.transitionId,
+            (TRANSITIONS[effectiveTransitionId]?.durationMs ?? 250) / 1000,
+          transitionType: effectiveTransitionId,
           filter: FILTERS[state.filterId] ?? FILTERS.none,
         },
         (p) =>
@@ -361,7 +363,7 @@ function Edit() {
           style={{ aspectRatio: "9/16", width: "min(42vw, 165px)" }}
         >
           {phase === "done" && videoUrl ? (
-            <video src={videoUrl} controls playsInline className="w-full h-full object-cover" />
+            <video src={videoUrl} autoPlay muted loop playsInline disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback" className="w-full h-full object-cover pointer-events-none" />
           ) : phase === "processing" ? (
             <div className="relative w-full h-full bg-black">
               {clips && clips.length > 0 && state ? (
@@ -372,7 +374,7 @@ function Edit() {
                       (c) => state.captions[c.sceneIdx] ?? { text: "", position: "bottom" },
                     )}
                     preset={livePreset}
-                    transition={stylePack.transitionId}
+                    transition={effectiveTransitionId}
                     filter={FILTERS[state.filterId] ?? FILTERS.none}
                     handle={brand?.handle}
                     logoUrl={logoUrl}
@@ -415,7 +417,7 @@ function Edit() {
                 (c) => state.captions[c.sceneIdx] ?? { text: "", position: "bottom" },
               )}
               preset={livePreset}
-              transition={stylePack.transitionId}
+              transition={effectiveTransitionId}
               filter={FILTERS[state.filterId] ?? FILTERS.none}
               handle={brand?.handle}
               logoUrl={logoUrl}
@@ -522,6 +524,38 @@ function Edit() {
                     );
                   })}
                 </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-[#E8D5B5]/80 mb-2 px-1">
+                  Tranziție între scene
+                </p>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {TRANSITION_LIST.map((tr) => {
+                    const active = effectiveTransitionId === tr.id;
+                    const isOverride = state.transitionId === tr.id;
+                    return (
+                      <button
+                        key={tr.id}
+                        onClick={() => { playSelect(); setTransition(isOverride ? null : tr.id); }}
+                        className={`flex-shrink-0 rounded-xl px-3 py-2 border transition text-left min-w-[88px] ${active ? "border-[#E8D5B5] bg-white/[0.07]" : "border-white/10 bg-white/[0.02]"}`}
+                      >
+                        <div className="w-full h-12 rounded-md mb-1.5 border border-white/10 overflow-hidden relative flex items-center justify-center bg-[linear-gradient(135deg,#3a2a1c_0%,#7a5638_50%,#2a1f12_100%)]">
+                          <TransitionGlyph id={tr.id} />
+                        </div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-medium ${active ? "text-[#E8D5B5]" : "text-white/85"}`}>
+                            {tr.label}
+                          </span>
+                          {active && <Check className="w-3 h-3 text-[#E8D5B5]" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-white/45 text-[10px] mt-2 px-1 leading-relaxed">
+                  {TRANSITIONS[effectiveTransitionId]?.desc}
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -667,6 +701,44 @@ function Edit() {
       </div>
     </PhoneShell>
   );
+}
+
+/**
+ * Tiny visual glyph per transition type. Shown inside the swatch so the
+ * user can recognize the effect by eye, not just by name.
+ */
+function TransitionGlyph({ id }: { id: string }) {
+  const base = "absolute inset-0 flex items-center justify-center";
+  switch (id) {
+    case "cut":
+      return <div className={base}><div className="w-full h-px bg-white/60" /></div>;
+    case "fade":
+      return <div className={`${base} bg-gradient-to-r from-transparent via-white/40 to-transparent`} />;
+    case "flash":
+      return <div className={`${base} bg-white/70`} />;
+    case "zoom":
+      return <div className={base}><div className="w-7 h-7 rounded-full border-2 border-white/70" /></div>;
+    case "glitch":
+      return (
+        <div className={base}>
+          <div className="w-6 h-3 bg-pink-400/70 -translate-x-1" />
+          <div className="w-6 h-3 bg-cyan-300/70 -translate-x-3 absolute" />
+        </div>
+      );
+    case "blur":
+      return <div className={`${base} backdrop-blur-md bg-white/10`}><div className="w-6 h-6 rounded-full bg-white/40 blur-sm" /></div>;
+    case "slide":
+      return (
+        <div className={base}>
+          <div className="w-3 h-6 bg-white/30 mr-0.5" />
+          <div className="w-6 h-6 bg-white/70" />
+        </div>
+      );
+    case "spin":
+      return <div className={base}><div className="w-6 h-6 border-2 border-white/70 border-t-transparent rounded-full" /></div>;
+    default:
+      return null;
+  }
 }
 
 function TabBtn({
