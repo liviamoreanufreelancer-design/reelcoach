@@ -14,6 +14,8 @@ import {
   RefreshCw,
   Instagram,
   Facebook,
+  Maximize2,
+  Pencil,
 } from "lucide-react";
 import { PhoneShell } from "@/components/PhoneShell";
 import { CinematicBg } from "@/components/CinematicBg";
@@ -64,6 +66,32 @@ function Edit() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState<ConcatProgress>({ phase: "loading", pct: 0 });
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const doneVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Enter fullscreen on the finished reel. Re-enables controls inside
+  // fullscreen so the user can scrub, mute, etc. while watching. Outside
+  // fullscreen we keep the video clean (no native chrome).
+  const enterFullscreen = () => {
+    const v = doneVideoRef.current;
+    if (!v) return;
+    // Re-enable controls for the fullscreen experience.
+    v.controls = true;
+    const req =
+      v.requestFullscreen?.bind(v) ??
+      // @ts-expect-error — Safari iOS-specific API
+      v.webkitEnterFullscreen?.bind(v);
+    if (req) {
+      Promise.resolve(req()).catch(() => { /* user cancelled / not supported */ });
+    }
+    // Strip controls again once the user exits fullscreen.
+    const onExit = () => {
+      if (!document.fullscreenElement) {
+        v.controls = false;
+        document.removeEventListener("fullscreenchange", onExit);
+      }
+    };
+    document.addEventListener("fullscreenchange", onExit);
+  };
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("text");
   const [clips, setClips] = useState<StoredClip[] | null>(null);
@@ -368,7 +396,7 @@ function Edit() {
           style={{ aspectRatio: "9/16", width: "min(42vw, 165px)" }}
         >
           {phase === "done" && videoUrl ? (
-            <video src={videoUrl} autoPlay muted loop playsInline disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback" className="w-full h-full object-cover pointer-events-none" />
+            <video ref={doneVideoRef} src={videoUrl} autoPlay muted loop playsInline disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback" className="w-full h-full object-cover" />
           ) : phase === "processing" ? (
             <div className="relative w-full h-full bg-black">
               {clips && clips.length > 0 && state ? (
@@ -654,6 +682,20 @@ function Edit() {
         <div className="mt-3 shrink-0">
           {phase === "done" ? (
             <div className="space-y-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={enterFullscreen}
+                  className="flex-1 h-11 rounded-full text-white text-sm font-medium bg-white/10 border border-white/15 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  <Maximize2 className="w-4 h-4" /> Fullscreen
+                </button>
+                <button
+                  onClick={() => setPhase("idle")}
+                  className="flex-1 h-11 rounded-full text-white text-sm font-medium bg-white/10 border border-white/15 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  <Pencil className="w-4 h-4" /> Editează
+                </button>
+              </div>
               <div className="rounded-2xl border border-[#E8D5B5]/25 bg-white/[0.03] p-3">
                 <p className="text-[10px] tracking-[0.3em] uppercase text-[#E8D5B5]/80 text-center mb-2">
                   Postează cu muzică oficială

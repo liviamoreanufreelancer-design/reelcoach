@@ -318,12 +318,14 @@ function PremiumEffect({ kind }: { kind?: string }) {
 }
 
 function SparkleEffect() {
-  // 4 staggered sparkles. Star SVG inline (small), animated with CSS.
+  // 6 staggered sparkles — bigger and more visible to match the renderer.
   const positions = [
-    { top: "22%", left: "30%", size: 22, delay: 0 },
-    { top: "38%", left: "62%", size: 16, delay: 280 },
-    { top: "55%", left: "36%", size: 24, delay: 560 },
-    { top: "30%", left: "70%", size: 14, delay: 840 },
+    { top: "20%", left: "25%", size: 32, delay: 0 },
+    { top: "35%", left: "60%", size: 24, delay: 180 },
+    { top: "55%", left: "32%", size: 36, delay: 360 },
+    { top: "28%", left: "72%", size: 22, delay: 540 },
+    { top: "65%", left: "65%", size: 30, delay: 720 },
+    { top: "45%", left: "15%", size: 26, delay: 900 },
   ];
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "screen" }}>
@@ -339,7 +341,7 @@ function SparkleEffect() {
             left: p.left,
             animation: "rdp-sparkle 1.1s ease-in-out infinite",
             animationDelay: `${p.delay}ms`,
-            filter: "drop-shadow(0 0 4px rgba(244,228,193,0.6))",
+            filter: "drop-shadow(0 0 6px rgba(244,228,193,0.85)) drop-shadow(0 0 14px rgba(244,228,193,0.4))",
           }}
         >
           <path
@@ -351,7 +353,7 @@ function SparkleEffect() {
       <style>{`
         @keyframes rdp-sparkle {
           0%, 100% { opacity: 0; transform: scale(0.4); }
-          50% { opacity: 1; transform: scale(1); }
+          25%, 75% { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </div>
@@ -368,7 +370,7 @@ function LightLeakEffect() {
           left: "-15%",
           width: "45%",
           height: "55%",
-          background: "radial-gradient(ellipse, rgba(244,220,170,0.5) 0%, rgba(232,180,110,0.25) 40%, transparent 70%)",
+          background: "radial-gradient(ellipse, rgba(244,220,170,0.85) 0%, rgba(232,180,110,0.45) 40%, transparent 70%)",
           animation: "rdp-leak 4s ease-in-out infinite",
         }}
       />
@@ -379,7 +381,7 @@ function LightLeakEffect() {
           left: "60%",
           width: "50%",
           height: "55%",
-          background: "radial-gradient(ellipse, rgba(255,200,140,0.45) 0%, rgba(232,150,90,0.2) 50%, transparent 75%)",
+          background: "radial-gradient(ellipse, rgba(255,200,140,0.8) 0%, rgba(232,150,90,0.4) 50%, transparent 75%)",
           animation: "rdp-leak 4s ease-in-out infinite",
           animationDelay: "2s",
         }}
@@ -412,7 +414,7 @@ function BokehEffect() {
             left: c.left,
             width: c.size,
             aspectRatio: "1",
-            background: "radial-gradient(circle, rgba(244,228,193,0.5) 0%, rgba(232,180,120,0.18) 55%, transparent 80%)",
+            background: "radial-gradient(circle, rgba(244,228,193,0.85) 0%, rgba(232,180,120,0.4) 55%, transparent 80%)",
             borderRadius: "50%",
             animation: "rdp-bokeh 3s ease-in-out infinite",
             animationDelay: `${c.delay}ms`,
@@ -421,8 +423,8 @@ function BokehEffect() {
       ))}
       <style>{`
         @keyframes rdp-bokeh {
-          0%, 100% { opacity: 0.35; transform: scale(1); }
-          50%      { opacity: 0.6;  transform: scale(1.08); }
+          0%, 100% { opacity: 0.55; transform: scale(1); }
+          50%      { opacity: 0.9;  transform: scale(1.1); }
         }
       `}</style>
     </div>
