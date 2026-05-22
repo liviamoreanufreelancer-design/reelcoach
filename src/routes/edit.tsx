@@ -778,3 +778,34 @@ function TabBtn({
   icon,
   label,
 }: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 py-3 rounded-full text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2 transition-all ${active ? "bg-[#E8D5B5] text-black" : "text-white/60"}`}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+function NoClips() {
+  return (
+    <PhoneShell>
+      <div className="relative z-10 flex flex-col h-full items-center justify-center px-6 text-center bg-background">
+        <AlertCircle className="w-8 h-8 text-[#E8D5B5]" />
+        <p className="text-white text-sm mt-4">Nu există clipuri salvate pentru acest scenariu.</p>
+        <Link
+          to="/film"
+          className="mt-5 inline-flex h-12 px-6 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-sm font-semibold items-center"
+        >
+          Începe filmarea
+        </Link>
+      </div>
+    </PhoneShell>
+  );
+}

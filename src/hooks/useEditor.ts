@@ -78,3 +78,16 @@ export function useEditor(scenarioId: string, defaults: { captions: CaptionState
     if (!state) return;
     void persist({ ...state, filterId, updatedAt: Date.now() });
   }, [state, persist]);
+
+  const setTransition = useCallback((transitionId: TransitionId | null) => {
+    if (!state) return;
+    void persist({ ...state, transitionId, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  const setEffectsEnabled = useCallback((effectsEnabled: boolean) => {
+    if (!state) return;
+    void persist({ ...state, effectsEnabled, updatedAt: Date.now() });
+  }, [state, persist]);
+
+  return { state, updateCaption, setStyle, setTrack, setFilter, setTransition, setEffectsEnabled };
+}
