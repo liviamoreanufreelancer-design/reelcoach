@@ -11,6 +11,10 @@ interface Props {
   captions: CaptionState[];
   preset: TextPreset;
   transition: TransitionId;
+  /** Per-clip premium effect ids matching the clips array. */
+  effectIds?: (string | undefined)[];
+  /** Master switch for all premium effects. */
+  effectsEnabled?: boolean;
   /** Same colour filter the export will use, so the preview matches. */
   filter?: FilterPreset;
   handle?: string;
@@ -25,7 +29,7 @@ interface Props {
  * like. No re-encode — instant feedback while the user types.
  */
 export function LivePreview({
-  clips, captions, preset, transition, filter,
+  clips, captions, preset, transition, filter, effectIds, effectsEnabled = true,
   handle, logoUrl,
   activeIdx, onSceneChange,
 }: Props) {
@@ -209,6 +213,11 @@ export function LivePreview({
             }}
           />
         )}
+        {/* Premium per-shot effect (sparkle / leak / bokeh / dust).
+            Matches the canvas export 1:1 in look and timing. */}
+        {effectsEnabled && effectIds && (
+          <PremiumEffect kind={effectIds[idx]} />
+        )}
       </div>
       {/* White flash overlay — fires per scene change. */}
       {showFlash && (
@@ -257,35 +266,3 @@ export function LivePreview({
             aria-label={`Scena ${i + 1}`}
           />
         ))}
-      </div>
-
-      {/* Side controls */}
-      <button
-        onClick={() => { const n = (idx - 1 + clips.length) % clips.length; setIdx(n); onSceneChange?.(n); }}
-        className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-        aria-label="Anterior"
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => { const n = (idx + 1) % clips.length; setIdx(n); onSceneChange?.(n); }}
-        className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-        aria-label="Următor"
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-
-      {/* Bottom controls */}
-      <div className="absolute bottom-2 left-2 flex gap-1">
-        <button
-          onClick={() => setPlaying((p) => !p)}
-          className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center"
-          aria-label={playing ? "Pauză" : "Play"}
-        >
-          {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-        </button>
-
-      </div>
-    </div>
-  );
-}

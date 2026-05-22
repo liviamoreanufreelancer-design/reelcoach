@@ -52,6 +52,9 @@ export function templateToScenario(t: ReelTemplate): Scenario {
       // How much of this clip the renderer keeps in the final reel
       // (auto-trim — record generously, keep only the good middle).
       finalUsageDuration: shot.finalUsageDuration,
+      // Premium effect for this scene — driven by the shot pattern
+      // (sparkle on reveal, bokeh on reaction, etc.).
+      effectId: shot.effect,
       mustShow: shot.mustShow,
       handsBusy: shot.handsBusy,
       patternId: shot.pattern,
@@ -72,6 +75,3 @@ export function templateToScenario(t: ReelTemplate): Scenario {
     scenes,
     source: "seed",
     difficulty: "easy",
-    goal: t.promise,
-  };
-}

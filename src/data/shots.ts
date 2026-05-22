@@ -1,39 +1,14 @@
-/**
- * ════════════════════════════════════════════════════════════════════
- *  SHOT-FIRST DATA LAYER
- * ════════════════════════════════════════════════════════════════════
- *
- *  This app is a GUIDED FILMING ENGINE, not a video editor.
- *
- *  The core unit is the SHOT — never the Reel.
- *
- *  Hierarchy:
- *      Category → Subcategory → ReelTemplate → Section[] → Shot[]
- *
- *  Every Shot is built from a reusable SHOT PATTERN (Before, Process,
- *  Suspense, Reveal, Reaction, Confidence). Patterns carry the defaults
- *  that make hundreds of templates feel consistent without hand-writing
- *  every shot. A template author only overrides what's specific.
- *
- *  Design rule: users are salon professionals, not creators. The data
- *  must always produce a flow that is guided, stress-free, and almost
- *  impossible to mess up — "TikTok GPS", not "production software".
- * ════════════════════════════════════════════════════════════════════
- */
-
 import type { TransitionId } from "./transitions";
 import type { FilterId } from "./filters";
 import type { Profession } from "./scenarios";
 
-/* ─────────────────────────────────────────────────────────────────────
- * 1. SHOT PATTERNS — the reusable building blocks
- * ──────────────────────────────────────────────────────────────────── */
-
 /**
- * The six canonical shot patterns. Every shot in every template is one
- * of these. Adding a new pattern here makes it instantly reusable across
- * all templates — that is the whole point of the architecture.
+ * Premium visual effects that overlay the video frame. Auto-assigned
+ * per shot pattern (see SHOT_PATTERNS) — never overlapping the action
+ * itself, used where they enhance the mood: reveal, reaction, suspense.
  */
+export type EffectId = "none" | "sparkle" | "leak" | "bokeh" | "dust";
+
 export type ShotPatternId =
   | "before"
   | "process"
@@ -44,25 +19,23 @@ export type ShotPatternId =
 
 export interface ShotPattern {
   id: ShotPatternId;
-  /** Short human label, e.g. "Before Shot". */
   label: string;
-  /** One calm sentence telling the pro what this shot is for. */
   purpose: string;
-  /** Sensible defaults — a template only overrides what differs. */
   defaults: {
-    /** Seconds the pro records in-app. Generous, so filming feels calm. */
     recordingDuration: number;
-    /** Seconds of that recording actually used in the final reel. */
     finalUsageDuration: number;
     transitionType: TransitionId;
     filterStyle: FilterId;
-    /** Countdown shown before recording starts (seconds). */
     countdown: number;
   };
-  /** Lucide icon name, for UI. */
   icon: string;
-  /** Accent used across guidance screens for this pattern. */
   accent: "rose" | "gold" | "emerald" | "violet" | "sky" | "amber";
+  /**
+   * Premium effect overlay auto-applied to this shot in the final reel
+   * (when the user has effects enabled). Tuned per pattern so the effect
+   * enhances the moment instead of distracting from it.
+   */
+  defaultEffect: EffectId;
 }
 
 export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
@@ -72,13 +45,8 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     purpose: "Arată punctul de plecare — onest, fără filtru. Aici începe transformarea.",
     icon: "Camera",
     accent: "sky",
-    defaults: {
-      recordingDuration: 4,
-      finalUsageDuration: 2,
-      transitionType: "cut",
-      filterStyle: "none",
-      countdown: 3,
-    },
+    defaultEffect: "none",
+    defaults: { recordingDuration: 4, finalUsageDuration: 2, transitionType: "cut", filterStyle: "none", countdown: 3 },
   },
   process: {
     id: "process",
@@ -86,13 +54,8 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     purpose: "Munca în desfășurare. Mâini, mișcare, detaliu — dovada priceperii tale.",
     icon: "Sparkles",
     accent: "violet",
-    defaults: {
-      recordingDuration: 5,
-      finalUsageDuration: 2,
-      transitionType: "fade",
-      filterStyle: "warm",
-      countdown: 3,
-    },
+    defaultEffect: "none",
+    defaults: { recordingDuration: 5, finalUsageDuration: 2, transitionType: "fade", filterStyle: "warm", countdown: 3 },
   },
   suspense: {
     id: "suspense",
@@ -100,13 +63,8 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     purpose: "Construiește tensiune. Arată destul cât să stârnești curiozitate — nu dezvălui încă.",
     icon: "EyeOff",
     accent: "amber",
-    defaults: {
-      recordingDuration: 4,
-      finalUsageDuration: 2,
-      transitionType: "fade",
-      filterStyle: "cinema",
-      countdown: 3,
-    },
+    defaultEffect: "leak",
+    defaults: { recordingDuration: 4, finalUsageDuration: 2, transitionType: "fade", filterStyle: "cinema", countdown: 3 },
   },
   reveal: {
     id: "reveal",
@@ -114,13 +72,8 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     purpose: "Momentul „uite ce am făcut”. Rezultatul final, filmat curat și încet.",
     icon: "Star",
     accent: "gold",
-    defaults: {
-      recordingDuration: 6,
-      finalUsageDuration: 4,
-      transitionType: "zoom",
-      filterStyle: "cinema",
-      countdown: 3,
-    },
+    defaultEffect: "sparkle",
+    defaults: { recordingDuration: 6, finalUsageDuration: 4, transitionType: "zoom", filterStyle: "cinema", countdown: 3 },
   },
   reaction: {
     id: "reaction",
@@ -128,13 +81,8 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     purpose: "Reacția reală a clientei. Emoția autentică e cel mai bun social proof.",
     icon: "Heart",
     accent: "rose",
-    defaults: {
-      recordingDuration: 8,
-      finalUsageDuration: 3,
-      transitionType: "fade",
-      filterStyle: "warm",
-      countdown: 3,
-    },
+    defaultEffect: "bokeh",
+    defaults: { recordingDuration: 8, finalUsageDuration: 3, transitionType: "fade", filterStyle: "warm", countdown: 3 },
   },
   confidence: {
     id: "confidence",
@@ -142,83 +90,45 @@ export const SHOT_PATTERNS: Record<ShotPatternId, ShotPattern> = {
     purpose: "Clienta se privește și se place. Cadrul care vinde următoarea programare.",
     icon: "Crown",
     accent: "emerald",
-    defaults: {
-      recordingDuration: 5,
-      finalUsageDuration: 3,
-      transitionType: "fade",
-      filterStyle: "cinema",
-      countdown: 3,
-    },
+    defaultEffect: "sparkle",
+    defaults: { recordingDuration: 5, finalUsageDuration: 3, transitionType: "fade", filterStyle: "cinema", countdown: 3 },
   },
 };
 
 export const SHOT_PATTERN_LIST: ShotPattern[] = [
-  SHOT_PATTERNS.before,
-  SHOT_PATTERNS.process,
-  SHOT_PATTERNS.suspense,
-  SHOT_PATTERNS.reveal,
-  SHOT_PATTERNS.reaction,
-  SHOT_PATTERNS.confidence,
+  SHOT_PATTERNS.before, SHOT_PATTERNS.process, SHOT_PATTERNS.suspense,
+  SHOT_PATTERNS.reveal, SHOT_PATTERNS.reaction, SHOT_PATTERNS.confidence,
 ];
 
-/* ─────────────────────────────────────────────────────────────────────
- * 2. SHOT — one filming instruction
- * ──────────────────────────────────────────────────────────────────── */
-
-/**
- * A single shot the pro will film. Every field a template can set lives
- * here. Anything left undefined falls back to the shot pattern default
- * (see `resolveShot`), so a template stays short and readable.
- */
 export interface Shot {
-  /** Stable id, unique within a template. */
   id: string;
-  /** Which reusable pattern this shot is built on. */
   pattern: ShotPatternId;
-  /** Short title shown on the guidance card, e.g. "Filmează BEFORE-ul". */
   title: string;
-  /**
-   * Ordered, plain-language steps. Each one is a single physical action,
-   * written as an imperative command to the pro ("Așază…", "Verifică…").
-   * Never videographer jargon. If the pro reads ONLY these, she must be
-   * able to film the shot correctly.
-   */
   instructions: string[];
-  /**
-   * What must be visible in frame — a short checklist, not instructions.
-   * Helps the pro confirm she framed it right.
-   */
   mustShow?: string[];
-  /**
-   * True when the pro's hands are busy with the client (styling, cutting).
-   * The flow uses this to never ask her to move the phone, and to show
-   * the "prop it up / or ask a colleague" guidance.
-   */
   handsBusy?: boolean;
-  /** Seconds recorded in-app. Falls back to pattern default. */
   recordingDuration?: number;
-  /** Seconds used in the final reel. Falls back to pattern default. */
   finalUsageDuration?: number;
-  /** Countdown before recording. Falls back to pattern default. */
   countdown?: number;
-  /** Caption burned over this shot in the final reel. */
   overlayText?: string;
-  /** Transition INTO the next shot. Falls back to pattern default. */
   transitionType?: TransitionId;
-  /** Color look for this shot. Falls back to pattern default. */
   filterStyle?: FilterId;
+  /**
+   * Optional override for the premium effect on this specific shot.
+   * If omitted, the pattern's defaultEffect is used.
+   */
+  effect?: EffectId;
 }
 
-/** A shot with every field filled in (pattern defaults applied). */
 export interface ResolvedShot
-  extends Required<Omit<Shot, "overlayText" | "mustShow" | "handsBusy">> {
+  extends Required<Omit<Shot, "overlayText" | "mustShow" | "handsBusy" | "effect">> {
   overlayText: string;
   mustShow: string[];
   handsBusy: boolean;
+  effect: EffectId;
   patternMeta: ShotPattern;
 }
 
-/** Merge a shot with its pattern defaults — single source of truth. */
 export function resolveShot(shot: Shot): ResolvedShot {
   const p = SHOT_PATTERNS[shot.pattern];
   return {
@@ -234,42 +144,26 @@ export function resolveShot(shot: Shot): ResolvedShot {
     overlayText: shot.overlayText ?? "",
     transitionType: shot.transitionType ?? p.defaults.transitionType,
     filterStyle: shot.filterStyle ?? p.defaults.filterStyle,
+    effect: shot.effect ?? p.defaultEffect,
     patternMeta: p,
   };
 }
 
-/* ─────────────────────────────────────────────────────────────────────
- * 3. SECTION — a named group of shots inside a template
- * ──────────────────────────────────────────────────────────────────── */
-
 export interface Section {
   id: string;
-  /** Label shown to the pro, e.g. "Transformarea". */
   title: string;
   shots: Shot[];
 }
 
-/* ─────────────────────────────────────────────────────────────────────
- * 4. REEL TEMPLATE — a full guided filming recipe
- * ──────────────────────────────────────────────────────────────────── */
-
 export interface ReelTemplate {
   id: string;
   subcategoryId: string;
-  /** Title shown in the template picker. */
   title: string;
-  /** One-line promise of what the pro will end up with. */
   promise: string;
-  /** Cover image (imported asset URL). */
   cover: string;
-  /** Professions this template suits. */
   professions: Profession[];
   sections: Section[];
 }
-
-/* ─────────────────────────────────────────────────────────────────────
- * 5. CATEGORY / SUBCATEGORY — the browse hierarchy
- * ──────────────────────────────────────────────────────────────────── */
 
 export interface Subcategory {
   id: string;
@@ -282,20 +176,13 @@ export interface Category {
   id: string;
   label: string;
   blurb: string;
-  /** Lucide icon name. */
   icon: string;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
- * 6. DERIVED HELPERS — used by the filming flow
- * ──────────────────────────────────────────────────────────────────── */
-
-/** Every shot of a template, flattened in filming order. */
 export function flattenShots(t: ReelTemplate): ResolvedShot[] {
   return t.sections.flatMap((s) => s.shots.map(resolveShot));
 }
 
-/** Which section a given flat shot index belongs to (for "Process · 2/4"). */
 export function sectionForShotIndex(
   t: ReelTemplate,
   flatIdx: number,
@@ -303,23 +190,17 @@ export function sectionForShotIndex(
   let cursor = 0;
   for (const section of t.sections) {
     if (flatIdx < cursor + section.shots.length) {
-      return {
-        section,
-        indexInSection: flatIdx - cursor,
-        total: section.shots.length,
-      };
+      return { section, indexInSection: flatIdx - cursor, total: section.shots.length };
     }
     cursor += section.shots.length;
   }
   return null;
 }
 
-/** Total seconds the pro spends recording (sum of recordingDuration). */
 export function totalRecordingSeconds(t: ReelTemplate): number {
   return flattenShots(t).reduce((sum, s) => sum + s.recordingDuration, 0);
 }
 
-/** Approx length of the finished reel (sum of finalUsageDuration). */
 export function totalFinalSeconds(t: ReelTemplate): number {
   return flattenShots(t).reduce((sum, s) => sum + s.finalUsageDuration, 0);
 }

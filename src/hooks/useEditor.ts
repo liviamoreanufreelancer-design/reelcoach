@@ -18,6 +18,8 @@ export interface EditorState {
   /** Optional override for transition. If null, use the style pack's default. */
   transitionId: TransitionId | null;
   trackId: string | null;     // null = no music
+  /** Master switch for the premium per-shot effects (sparkle/leak/bokeh/dust). */
+  effectsEnabled: boolean;
   updatedAt: number;
 }
 
@@ -31,13 +33,19 @@ export function useEditor(scenarioId: string, defaults: { captions: CaptionState
     void (async () => {
       const stored = (await get(key(scenarioId))) as EditorState | undefined;
       if (cancelled) return;
-      setState(stored ? { ...stored, filterId: stored.filterId ?? "none", transitionId: stored.transitionId ?? null } : {
+      setState(stored ? {
+        ...stored,
+        filterId: stored.filterId ?? "none",
+        transitionId: stored.transitionId ?? null,
+        effectsEnabled: stored.effectsEnabled ?? true,
+      } : {
         scenarioId,
         captions: defaults.captions,
         styleId: defaults.vibe,
         filterId: "none",
         transitionId: null,
         trackId: null,
+        effectsEnabled: true,
         updatedAt: Date.now(),
       });
     })();
@@ -70,11 +78,3 @@ export function useEditor(scenarioId: string, defaults: { captions: CaptionState
     if (!state) return;
     void persist({ ...state, filterId, updatedAt: Date.now() });
   }, [state, persist]);
-
-  const setTransition = useCallback((transitionId: TransitionId | null) => {
-    if (!state) return;
-    void persist({ ...state, transitionId, updatedAt: Date.now() });
-  }, [state, persist]);
-
-  return { state, updateCaption, setStyle, setTrack, setFilter, setTransition };
-}

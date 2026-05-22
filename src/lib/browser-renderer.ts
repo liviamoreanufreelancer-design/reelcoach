@@ -28,6 +28,13 @@ export interface BrowserRenderOptions {
   effects?: SimpleEffects;
   /** Color filter applied to each clip frame (does not affect overlays). */
   filter?: FilterPreset;
+  /**
+   * Per-clip premium effect ids ("sparkle"/"leak"/"bokeh"/"dust"/"none").
+   * Indexed by clip order. Use `effectsEnabled: false` to disable all.
+   */
+  effectIds?: (string | undefined)[];
+  /** Master switch — when false, no effects render even if effectIds set. */
+  effectsEnabled?: boolean;
 }
 
 type LoadedImage = { image: CanvasImageSource; cleanup: () => void };
@@ -282,6 +289,8 @@ export async function renderReelInBrowser(
   const outroMs = opts.outroPng ? (opts.outroDuration ?? 1.4) * 1000 : 0;
   const transitionType: TransitionId = opts.transitionType ?? "fade";
   const transMs = effects.transitions ? (opts.transitionDuration ?? 0.25) * 1000 : 0;
+  const effectsEnabled = opts.effectsEnabled ?? true;
+  const effectIds = opts.effectIds ?? [];
 
   const canvas = createRenderCanvas(width, height);
   const ctxOrNull = canvas.getContext("2d", { alpha: false });
@@ -398,6 +407,14 @@ export async function renderReelInBrowser(
     const lc = loadedClips[idx];
     const tNorm = clamp01(localMs / clipDursMs[idx]);
     drawClipFrame(target, lc.video, width, height, variants[idx], tNorm, effects.kenBurns, filter);
+    // Premium effect overlay: between the clip frame and the text caption.
+    // The text caption MUST stay on top so the hook stays readable.
+    if (effectsEnabled) {
+      const effectId = effectIds[idx];
+      if (effectId && effectId !== "none") {
+        drawPremiumEffect(target, effectId, localMs, clipDursMs[idx], width, height);
+      }
+    }
     const ov = overlayImgs[idx];
     if (ov) target.drawImage(ov.image, 0, 0, width, height);
   }
@@ -577,26 +594,3 @@ export async function renderReelInBrowser(
         ctx.save();
         ctx.globalAlpha = easeInOut(t);
         ctx.drawImage(incoming, 0, 0);
-        ctx.restore();
-      }
-      return;
-    }
-
-    if (active !== -1) {
-      ensurePlaying(active, tMs - clipStarts[active]);
-      drawClipWithOverlay(active, tMs - clipStarts[active], ctx);
-    }
-  }
-
-  function ensurePlaying(idx: number, localMs: number) {
-    const lc = loadedClips[idx];
-    // Seek into the clip at: middle-start offset + how far we are into the
-    // played window. This is what realises the auto-trim — the recorder
-    // captured 5s but we only play the chosen 2s from the middle.
-    const seekSec = Math.max(0, (clipStartOffsetMs[idx] + localMs) / 1000);
-    if (lc.video.paused) {
-      try { lc.video.currentTime = seekSec; } catch { /* ignore */ }
-      lc.video.play().catch(() => { /* ignore */ });
-    }
-  }
-}

@@ -136,6 +136,8 @@ export interface Scene {
   overlayText?: string;
   /** Seconds of this clip actually used in the final reel (auto-trim target). */
   finalUsageDuration?: number;
+  /** Seconds of this clip actually used in the final reel (auto-trim target). */
+  finalUsageDuration?: number;
   /** Optional framing checklist — what must be visible in frame. */
   mustShow?: string[];
   /** True when the pro's hands are busy with the client. */

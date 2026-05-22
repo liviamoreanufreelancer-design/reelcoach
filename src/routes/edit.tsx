@@ -56,7 +56,7 @@ function Edit() {
       })),
     [scenario],
   );
-  const { state, updateCaption, setStyle, setFilter, setTransition } = useEditor(scenarioId, {
+  const { state, updateCaption, setStyle, setFilter, setTransition, setEffectsEnabled } = useEditor(scenarioId, {
     captions: defaultCaptions,
     vibe: brand?.vibe ?? "luxury",
   });
@@ -222,6 +222,11 @@ function Edit() {
             (TRANSITIONS[effectiveTransitionId]?.durationMs ?? 250) / 1000,
           transitionType: effectiveTransitionId,
           filter: FILTERS[state.filterId] ?? FILTERS.none,
+          // Premium per-shot effects (sparkle/leak/bokeh/dust). Each clip
+          // carries the effect chosen by its shot pattern; the master
+          // toggle in state lets the user kill them all.
+          effectsEnabled: state.effectsEnabled,
+          effectIds: clips.map((c) => scenario.scenes[c.sceneIdx]?.effectId),
         },
         (p) =>
           setProgress({
@@ -376,6 +381,8 @@ function Edit() {
                     preset={livePreset}
                     transition={effectiveTransitionId}
                     filter={FILTERS[state.filterId] ?? FILTERS.none}
+                    effectIds={clips.map((c) => scenario.scenes[c.sceneIdx]?.effectId)}
+                    effectsEnabled={state.effectsEnabled}
                     handle={brand?.handle}
                     logoUrl={logoUrl}
                     activeIdx={Math.min(activeScene, clips.length - 1)}
@@ -419,6 +426,8 @@ function Edit() {
               preset={livePreset}
               transition={effectiveTransitionId}
               filter={FILTERS[state.filterId] ?? FILTERS.none}
+              effectIds={clips?.map((c) => scenario.scenes[c.sceneIdx]?.effectId)}
+              effectsEnabled={state.effectsEnabled}
               handle={brand?.handle}
               logoUrl={logoUrl}
               activeIdx={Math.min(activeScene, clips.length - 1)}
@@ -524,6 +533,28 @@ function Edit() {
                     );
                   })}
                 </div>
+              </div>
+
+              <div>
+                <button
+                  onClick={() => { playSelect(); setEffectsEnabled(!state.effectsEnabled); }}
+                  className="w-full flex items-center justify-between gap-3 rounded-2xl p-3 border border-white/10 bg-white/[0.02] active:scale-[0.99] transition"
+                >
+                  <div className="text-left">
+                    <p className="text-white text-sm font-medium flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#E8D5B5]" />
+                      Efecte premium
+                    </p>
+                    <p className="text-white/55 text-[11px] mt-0.5 leading-snug">
+                      Sclipiri, lumini și bokeh aplicate automat pe scenele potrivite.
+                    </p>
+                  </div>
+                  <span className={`relative w-10 h-6 rounded-full transition shrink-0 ${state.effectsEnabled ? "bg-[#E8D5B5]" : "bg-white/15"}`}>
+                    <span
+                      className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${state.effectsEnabled ? "left-[18px]" : "left-0.5"}`}
+                    />
+                  </span>
+                </button>
               </div>
 
               <div>
@@ -747,34 +778,3 @@ function TabBtn({
   icon,
   label,
 }: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 py-3 rounded-full text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2 transition-all ${active ? "bg-[#E8D5B5] text-black" : "text-white/60"}`}
-    >
-      {icon} {label}
-    </button>
-  );
-}
-
-function NoClips() {
-  return (
-    <PhoneShell>
-      <div className="relative z-10 flex flex-col h-full items-center justify-center px-6 text-center bg-background">
-        <AlertCircle className="w-8 h-8 text-[#E8D5B5]" />
-        <p className="text-white text-sm mt-4">Nu există clipuri salvate pentru acest scenariu.</p>
-        <Link
-          to="/film"
-          className="mt-5 inline-flex h-12 px-6 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-sm font-semibold items-center"
-        >
-          Începe filmarea
-        </Link>
-      </div>
-    </PhoneShell>
-  );
-}
