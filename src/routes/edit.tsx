@@ -230,7 +230,7 @@ function Edit() {
           })
         : undefined;
 
-      const blob = await renderReelInBrowser(
+const blob = await renderReelInBrowser(
         clips,
         {
           overlays,
@@ -366,7 +366,7 @@ function Edit() {
   return (
     <PhoneShell>
       <CinematicBg src={scenario.scenes[0]?.bg} blur overlay={0.82} kenBurns={false} />
-      <div className="relative z-10 flex flex-col h-full px-5 pt-4 pb-5">
+<div className="relative z-10 flex flex-col h-full px-5 pt-4 pb-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link

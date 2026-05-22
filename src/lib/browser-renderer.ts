@@ -676,37 +676,34 @@ function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: n
   ctx.fill();
   // soft glow
   ctx.globalAlpha = alpha * 0.5;
-  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 2);
-  grad.addColorStop(0, "rgba(244,228,193,0.85)");
-  grad.addColorStop(0.5, "rgba(244,228,193,0.3)");
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 1.6);
+  grad.addColorStop(0, "rgba(244,228,193,0.55)");
+  grad.addColorStop(0.5, "rgba(244,228,193,0.18)");
   grad.addColorStop(1, "rgba(244,228,193,0)");
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(cx, cy, size * 2, 0, Math.PI * 2);
+  ctx.arc(cx, cy, size * 1.6, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
 
-/** Sparkle highlights — 6 stars that pop in/out at staggered times. */
+/** Sparkle highlights — 5 stars that pop in/out at staggered times. */
 function drawSparkles(ctx: CanvasRenderingContext2D, localMs: number, clipMs: number, w: number, h: number) {
-  const count = 6;
+  const count = 5;
   for (let i = 0; i < count; i++) {
-    // Each sparkle has its own cycle. Cycle length 950ms — slightly
-    // quicker than before so more sparkles are visible at any moment.
-    const cycleMs = 950;
-    const phase = ((localMs + i * 180) % cycleMs) / cycleMs; // 0..1
-    // Triangle wave: 0 → 1 → 0 across the cycle, with a hold in the middle
+    const cycleMs = 1100;
+    const phase = ((localMs + i * 220) % cycleMs) / cycleMs;
     let alpha: number;
-    if (phase < 0.25) alpha = phase / 0.25;
-    else if (phase < 0.75) alpha = 1;
-    else alpha = 1 - (phase - 0.75) / 0.25;
+    if (phase < 0.3) alpha = phase / 0.3;
+    else if (phase < 0.7) alpha = 1;
+    else alpha = 1 - (phase - 0.7) / 0.3;
     if (alpha <= 0) continue;
-    // Position — stable per sparkle index. Spread across the whole frame.
-    const x = (0.1 + rand(i * 7.3) * 0.8) * w;
-    const y = (0.1 + rand(i * 11.1) * 0.75) * h;
-    // Bigger stars — 26-50px @ 1080px reference. Twice the previous size.
-    const size = (28 + rand(i * 3.7) * 22) * (w / 1080);
-    drawStar(ctx, x, y, size, alpha);
+    const x = (0.15 + rand(i * 7.3) * 0.7) * w;
+    const y = (0.15 + rand(i * 11.1) * 0.65) * h;
+    // Mid-sized stars — 20-36px @ 1080px reference. Visible accents,
+    // not full-coverage glitter.
+    const size = (20 + rand(i * 3.7) * 16) * (w / 1080);
+    drawStar(ctx, x, y, size, alpha * 0.85);
   }
 }
 
@@ -731,8 +728,8 @@ function drawLightLeaks(ctx: CanvasRenderingContext2D, localMs: number, clipMs: 
     const cy = (i === 0 ? 0.25 : 0.65) * h;
     const radius = 0.35 * w;
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-    grad.addColorStop(0, `rgba(244, 220, 170, ${0.85 * alpha})`);
-    grad.addColorStop(0.4, `rgba(232, 180, 110, ${0.45 * alpha})`);
+    grad.addColorStop(0, `rgba(244, 220, 170, ${0.55 * alpha})`);
+    grad.addColorStop(0.4, `rgba(232, 180, 110, ${0.25 * alpha})`);
     grad.addColorStop(1, "rgba(232, 180, 110, 0)");
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -761,14 +758,14 @@ function drawBokeh(ctx: CanvasRenderingContext2D, localMs: number, clipMs: numbe
     const phase = ((localMs + i * 800) % cycleMs) / cycleMs;
     // Sine wave from 0.35 to 0.6 alpha, with scale 1.0 to 1.08
     const sineT = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
-    const alpha = 0.55 + sineT * 0.35;
+    const alpha = 0.4 + sineT * 0.22;
     const scale = 1 + sineT * 0.08;
     const cx = p.x * w;
     const cy = p.y * h;
     const radius = p.r * w * scale;
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-    grad.addColorStop(0, `rgba(244, 228, 193, ${0.85 * alpha})`);
-    grad.addColorStop(0.55, `rgba(232, 180, 120, ${0.35 * alpha})`);
+    grad.addColorStop(0, `rgba(244, 228, 193, ${0.55 * alpha})`);
+    grad.addColorStop(0.55, `rgba(232, 180, 120, ${0.2 * alpha})`);
     grad.addColorStop(1, "rgba(232, 180, 120, 0)");
     ctx.fillStyle = grad;
     ctx.beginPath();

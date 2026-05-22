@@ -318,17 +318,17 @@ function PremiumEffect({ kind }: { kind?: string }) {
 }
 
 function SparkleEffect() {
-  // 6 staggered sparkles — bigger and more visible to match the renderer.
+  // 5 staggered sparkles — visible without overwhelming. Sized to feel
+  // like accents on the highlights, not a full overlay.
   const positions = [
-    { top: "20%", left: "25%", size: 32, delay: 0 },
-    { top: "35%", left: "60%", size: 24, delay: 180 },
-    { top: "55%", left: "32%", size: 36, delay: 360 },
-    { top: "28%", left: "72%", size: 22, delay: 540 },
-    { top: "65%", left: "65%", size: 30, delay: 720 },
-    { top: "45%", left: "15%", size: 26, delay: 900 },
+    { top: "22%", left: "28%", size: 22, delay: 0 },
+    { top: "38%", left: "62%", size: 17, delay: 220 },
+    { top: "55%", left: "34%", size: 24, delay: 440 },
+    { top: "30%", left: "70%", size: 18, delay: 660 },
+    { top: "62%", left: "60%", size: 20, delay: 880 },
   ];
   return (
-    <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "screen" }}>
+    <div className="absolute inset-0 pointer-events-none">
       {positions.map((p, i) => (
         <svg
           key={i}
@@ -341,19 +341,19 @@ function SparkleEffect() {
             left: p.left,
             animation: "rdp-sparkle 1.1s ease-in-out infinite",
             animationDelay: `${p.delay}ms`,
-            filter: "drop-shadow(0 0 6px rgba(244,228,193,0.85)) drop-shadow(0 0 14px rgba(244,228,193,0.4))",
+            filter: "drop-shadow(0 0 5px rgba(244,228,193,0.7)) drop-shadow(0 0 10px rgba(244,228,193,0.25))",
           }}
         >
           <path
             d="M12 0 L13.5 10.5 L24 12 L13.5 13.5 L12 24 L10.5 13.5 L0 12 L10.5 10.5 Z"
-            fill="rgba(244,228,193,1)"
+            fill="rgba(244,228,193,0.95)"
           />
         </svg>
       ))}
       <style>{`
         @keyframes rdp-sparkle {
           0%, 100% { opacity: 0; transform: scale(0.4); }
-          25%, 75% { opacity: 1; transform: scale(1); }
+          40%, 60% { opacity: 0.85; transform: scale(1); }
         }
       `}</style>
     </div>
@@ -362,7 +362,7 @@ function SparkleEffect() {
 
 function LightLeakEffect() {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ mixBlendMode: "screen" }}>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <div
         style={{
           position: "absolute",
@@ -370,7 +370,7 @@ function LightLeakEffect() {
           left: "-15%",
           width: "45%",
           height: "55%",
-          background: "radial-gradient(ellipse, rgba(244,220,170,0.85) 0%, rgba(232,180,110,0.45) 40%, transparent 70%)",
+          background: "radial-gradient(ellipse, rgba(244,220,170,0.55) 0%, rgba(232,180,110,0.25) 40%, transparent 70%)",
           animation: "rdp-leak 4s ease-in-out infinite",
         }}
       />
@@ -381,7 +381,7 @@ function LightLeakEffect() {
           left: "60%",
           width: "50%",
           height: "55%",
-          background: "radial-gradient(ellipse, rgba(255,200,140,0.8) 0%, rgba(232,150,90,0.4) 50%, transparent 75%)",
+          background: "radial-gradient(ellipse, rgba(255,200,140,0.5) 0%, rgba(232,150,90,0.22) 50%, transparent 75%)",
           animation: "rdp-leak 4s ease-in-out infinite",
           animationDelay: "2s",
         }}
@@ -404,7 +404,7 @@ function BokehEffect() {
     { top: "78%", left: "15%", size: "22%", delay: 2400 },
   ];
   return (
-    <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "screen" }}>
+    <div className="absolute inset-0 pointer-events-none">
       {circles.map((c, i) => (
         <div
           key={i}
@@ -414,7 +414,7 @@ function BokehEffect() {
             left: c.left,
             width: c.size,
             aspectRatio: "1",
-            background: "radial-gradient(circle, rgba(244,228,193,0.85) 0%, rgba(232,180,120,0.4) 55%, transparent 80%)",
+            background: "radial-gradient(circle, rgba(244,228,193,0.55) 0%, rgba(232,180,120,0.22) 55%, transparent 80%)",
             borderRadius: "50%",
             animation: "rdp-bokeh 3s ease-in-out infinite",
             animationDelay: `${c.delay}ms`,
@@ -423,8 +423,8 @@ function BokehEffect() {
       ))}
       <style>{`
         @keyframes rdp-bokeh {
-          0%, 100% { opacity: 0.55; transform: scale(1); }
-          50%      { opacity: 0.9;  transform: scale(1.1); }
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50%      { opacity: 0.65; transform: scale(1.06); }
         }
       `}</style>
     </div>
@@ -440,7 +440,7 @@ function GoldDustEffect() {
     color: i % 2 === 0 ? "#F4E4C1" : "#E8D5B5",
   }));
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ mixBlendMode: "screen" }}>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {particles.map((p, i) => (
         <div
           key={i}
