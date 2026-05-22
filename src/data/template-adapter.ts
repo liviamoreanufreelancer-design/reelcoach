@@ -75,3 +75,6 @@ export function templateToScenario(t: ReelTemplate): Scenario {
     scenes,
     source: "seed",
     difficulty: "easy",
+    goal: t.promise,
+  };
+}

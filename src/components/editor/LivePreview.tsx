@@ -266,3 +266,203 @@ export function LivePreview({
             aria-label={`Scena ${i + 1}`}
           />
         ))}
+      </div>
+
+      {/* Side controls */}
+      <button
+        onClick={() => { const n = (idx - 1 + clips.length) % clips.length; setIdx(n); onSceneChange?.(n); }}
+        className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+        aria-label="Anterior"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => { const n = (idx + 1) % clips.length; setIdx(n); onSceneChange?.(n); }}
+        className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+        aria-label="Următor"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+
+      {/* Bottom controls */}
+      <div className="absolute bottom-2 left-2 flex gap-1">
+        <button
+          onClick={() => setPlaying((p) => !p)}
+          className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center"
+          aria-label={playing ? "Pauză" : "Play"}
+        >
+          {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+        </button>
+
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * PREMIUM EFFECT OVERLAY — preview-side
+ *
+ * Matches drawPremiumEffect in browser-renderer.ts (gold palette,
+ * timing, density). DOM/CSS-based — performant, smooth, no canvas
+ * overhead in the preview.
+ * ════════════════════════════════════════════════════════════════════ */
+function PremiumEffect({ kind }: { kind?: string }) {
+  if (!kind || kind === "none") return null;
+  switch (kind) {
+    case "sparkle":  return <SparkleEffect />;
+    case "leak":     return <LightLeakEffect />;
+    case "bokeh":    return <BokehEffect />;
+    case "dust":     return <GoldDustEffect />;
+    default:         return null;
+  }
+}
+
+function SparkleEffect() {
+  // 4 staggered sparkles. Star SVG inline (small), animated with CSS.
+  const positions = [
+    { top: "22%", left: "30%", size: 22, delay: 0 },
+    { top: "38%", left: "62%", size: 16, delay: 280 },
+    { top: "55%", left: "36%", size: 24, delay: 560 },
+    { top: "30%", left: "70%", size: 14, delay: 840 },
+  ];
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "screen" }}>
+      {positions.map((p, i) => (
+        <svg
+          key={i}
+          width={p.size}
+          height={p.size}
+          viewBox="0 0 24 24"
+          style={{
+            position: "absolute",
+            top: p.top,
+            left: p.left,
+            animation: "rdp-sparkle 1.1s ease-in-out infinite",
+            animationDelay: `${p.delay}ms`,
+            filter: "drop-shadow(0 0 4px rgba(244,228,193,0.6))",
+          }}
+        >
+          <path
+            d="M12 0 L13.5 10.5 L24 12 L13.5 13.5 L12 24 L10.5 13.5 L0 12 L10.5 10.5 Z"
+            fill="rgba(244,228,193,1)"
+          />
+        </svg>
+      ))}
+      <style>{`
+        @keyframes rdp-sparkle {
+          0%, 100% { opacity: 0; transform: scale(0.4); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function LightLeakEffect() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ mixBlendMode: "screen" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: "18%",
+          left: "-15%",
+          width: "45%",
+          height: "55%",
+          background: "radial-gradient(ellipse, rgba(244,220,170,0.5) 0%, rgba(232,180,110,0.25) 40%, transparent 70%)",
+          animation: "rdp-leak 4s ease-in-out infinite",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: "55%",
+          left: "60%",
+          width: "50%",
+          height: "55%",
+          background: "radial-gradient(ellipse, rgba(255,200,140,0.45) 0%, rgba(232,150,90,0.2) 50%, transparent 75%)",
+          animation: "rdp-leak 4s ease-in-out infinite",
+          animationDelay: "2s",
+        }}
+      />
+      <style>{`
+        @keyframes rdp-leak {
+          0%, 100% { opacity: 0; transform: translateX(-10px); }
+          25%, 75% { opacity: 1; transform: translateX(10px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function BokehEffect() {
+  const circles = [
+    { top: "8%",  left: "5%",  size: "26%", delay: 0 },
+    { top: "60%", left: "75%", size: "32%", delay: 800 },
+    { top: "18%", left: "82%", size: "18%", delay: 1600 },
+    { top: "78%", left: "15%", size: "22%", delay: 2400 },
+  ];
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "screen" }}>
+      {circles.map((c, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: c.top,
+            left: c.left,
+            width: c.size,
+            aspectRatio: "1",
+            background: "radial-gradient(circle, rgba(244,228,193,0.5) 0%, rgba(232,180,120,0.18) 55%, transparent 80%)",
+            borderRadius: "50%",
+            animation: "rdp-bokeh 3s ease-in-out infinite",
+            animationDelay: `${c.delay}ms`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes rdp-bokeh {
+          0%, 100% { opacity: 0.35; transform: scale(1); }
+          50%      { opacity: 0.6;  transform: scale(1.08); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function GoldDustEffect() {
+  // 9 particles falling slowly. Positions stable per index.
+  const particles = Array.from({ length: 9 }, (_, i) => ({
+    left: `${5 + ((i * 11.3) % 90)}%`,
+    size: 1.5 + (i % 2) * 0.5,
+    delay: i * 380,
+    color: i % 2 === 0 ? "#F4E4C1" : "#E8D5B5",
+  }));
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ mixBlendMode: "screen" }}>
+      {particles.map((p, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: "-2%",
+            left: p.left,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            borderRadius: "50%",
+            background: p.color,
+            animation: "rdp-dust 3.5s linear infinite",
+            animationDelay: `${p.delay}ms`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes rdp-dust {
+          0%   { transform: translateY(0); opacity: 0; }
+          15%  { opacity: 0.7; }
+          85%  { opacity: 0.7; }
+          100% { transform: translateY(110%); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
