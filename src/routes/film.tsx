@@ -207,7 +207,8 @@ function Film() {
         {/* Solid midnight base — the split image sits on top of this. */}
         <div className="absolute inset-0 bg-[#0F1419]" />
 
-        {/* TOP — split before/after, image-dominant (60% of screen). */}
+        {/* TOP — image at top 60% of the screen. The bottom 40% is clean
+            midnight where the text lives. */}
         <div className="absolute top-0 left-0 right-0 h-[60%] overflow-hidden">
           {isTransformation ? (
             <>
@@ -245,7 +246,8 @@ function Film() {
               }}
             />
           )}
-          {/* Gradient that melts the image into the dark canvas below. */}
+          {/* Gradient that melts the image into the dark canvas below.
+              Strong toward the bottom so the transition is invisible. */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F1419]" />
         </div>
 
@@ -269,11 +271,11 @@ function Film() {
           </div>
         </div>
 
-        {/* MAIN CONTENT — content compact, hugging the button from above
-            with a small breathing gap. Layout = flex-end so any leftover
-            space sits between the image and the text (not the button). */}
+        {/* MAIN CONTENT — sits in the clean dark zone below the image,
+            starting right where the gradient melts into black. Left-aligned
+            for editorial readability (centered text gets lost on dark). */}
         <div className="relative z-10 h-full flex flex-col pb-6">
-          <div className="flex-1 min-h-0 flex flex-col justify-end px-6 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-y-auto">
+          <div className="flex-1 min-h-0 flex flex-col px-6 pt-[60%] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-y-auto">
             <div>
               {/* Metadata pills — orient the user immediately. */}
               <div className="flex items-center gap-1.5 mb-4">
