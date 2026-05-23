@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { useEffect } from "react";
 import { CinematicBg } from "@/components/CinematicBg";
 import { PhoneShell } from "@/components/PhoneShell";
 import bg from "@/assets/par-cat/stock/before-after.jpg";
@@ -9,84 +8,90 @@ export const Route = createFileRoute("/editing")({
   component: Editing,
 });
 
-const steps = [
-  { label: "Selectăm cele mai bune cadre", delay: 700 },
-  { label: "Sincronizăm scenele", delay: 1600 },
-  { label: "Adăugăm transitions", delay: 2500 },
-  { label: "Adăugăm filtre", delay: 3400 },
-  { label: "Exportăm reel-ul", delay: 4200 },
-];
-
 function Editing() {
-  const [done, setDone] = useState(0);
   const nav = useNavigate();
 
   useEffect(() => {
-    const timers = steps.map((s, i) =>
-      setTimeout(() => setDone((d) => Math.max(d, i + 1)), s.delay),
-    );
-    const final = setTimeout(() => nav({ to: "/edit" }), 4800);
-    return () => {
-      timers.forEach(clearTimeout);
-      clearTimeout(final);
-    };
+    const t = setTimeout(() => nav({ to: "/edit" }), 4800);
+    return () => clearTimeout(t);
   }, [nav]);
 
   return (
     <PhoneShell>
-      <CinematicBg src={bg} blur overlay={0.75} kenBurns={false} />
-      <div className="relative z-10 flex flex-col h-full px-7 pt-20 pb-12">
-        <div className="flex flex-col items-center mt-6">
-          <div className="relative w-28 h-28 flex items-center justify-center">
-            <span className="absolute inset-0 rounded-full border border-[#E8D5B5]/30" />
-            <span className="absolute inset-2 rounded-full border-t border-[#E8D5B5] animate-spin" style={{ animationDuration: "2s" }} />
-            <span className="absolute inset-6 rounded-full bg-[#E8D5B5]/10 backdrop-blur" />
-            <Loader2 className="w-7 h-7 text-[#E8D5B5] animate-spin" style={{ animationDuration: "1.4s" }} />
+      <CinematicBg src={bg} blur overlay={0.8} kenBurns={false} />
+
+      {/* Soft warm glow behind the title. */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 42%, rgba(232,213,181,0.10) 0%, rgba(232,213,181,0) 55%)",
+        }}
+      />
+
+      <div className="relative z-10 h-full flex flex-col">
+        {/* Concentric breathing rings — calm, premium presence. */}
+        <div className="flex justify-center" style={{ marginTop: "22%" }}>
+          <div className="relative w-[72px] h-[72px]">
+            <span
+              className="absolute inset-0 rounded-full border border-[#E8D5B5]/25"
+              style={{ animation: "breathe 3s ease-in-out infinite" }}
+            />
+            <span
+              className="absolute inset-[14px] rounded-full border border-[#E8D5B5]/45"
+              style={{ animation: "breathe 3s ease-in-out infinite 0.5s" }}
+            />
+            <span
+              className="absolute inset-[28px] rounded-full bg-[#E8D5B5]"
+              style={{ opacity: 0.7 }}
+            />
           </div>
-          <p className="mt-10 text-[11px] tracking-[0.45em] uppercase text-[#E8D5B5] font-semibold">
-            ReelPilot AI
+        </div>
+
+        {/* Step kicker + two-line serif title — single dominant element. */}
+        <div className="flex flex-col items-center text-center px-7 mt-14">
+          <p className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5]/65 font-medium">
+            Pasul · 02
           </p>
-          <h1 className="font-display text-[40px] text-center text-white mt-3 leading-[1.05]">
-            Edităm<br />
-            <em className="italic font-editorial text-[#E8D5B5]">reel-ul tău…</em>
+          <h1
+            className="font-editorial text-white mt-5"
+            style={{ fontSize: "34px", lineHeight: 1.05, letterSpacing: "-0.02em" }}
+          >
+            E timpul să
+          </h1>
+          <h1
+            className="font-editorial italic text-[#E8D5B5] mt-1"
+            style={{ fontSize: "34px", lineHeight: 1.05, letterSpacing: "-0.02em" }}
+          >
+            edităm
           </h1>
         </div>
 
-        <div className="mt-auto">
-          <div className="glass-lux rounded-3xl p-5 space-y-1">
-            {steps.map((s, i) => {
-              const isDone = done > i;
-              const isActive = done === i;
-              return (
-                <div
-                  key={s.label}
-                  className={`flex items-center gap-4 py-3 px-2 rounded-2xl transition-all duration-500 ${isActive ? "bg-white/5" : ""}`}
-                >
-                  <div
-                    className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                      isDone ? "bg-[#E8D5B5] text-black" : isActive ? "border border-[#E8D5B5]/60" : "border border-white/15"
-                    }`}
-                  >
-                    {isDone ? (
-                      <Check className="w-4 h-4" strokeWidth={3} />
-                    ) : isActive ? (
-                      <span className="w-2 h-2 rounded-full bg-[#E8D5B5] animate-pulse" />
-                    ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                    )}
-                  </div>
-                  <span className={`text-[14px] tracking-wide ${isDone ? "text-white" : isActive ? "text-white/90" : "text-white/40"}`}>
-                    {s.label}
-                  </span>
-                </div>
-              );
-            })}
+        {/* Lower third: thin shimmer line. */}
+        <div className="mt-auto flex flex-col items-center pb-20">
+          <div className="relative w-[44%] h-px bg-[#E8D5B5]/10 overflow-hidden rounded-full">
+            <div
+              className="absolute inset-y-0 w-1/2"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, #E8D5B5, transparent)",
+                animation: "shimmer-line 2.4s ease-in-out infinite",
+              }}
+            />
           </div>
-          <p className="mt-4 text-center text-[10px] tracking-[0.35em] uppercase text-white/50">
-            Stitch · Transitions · Color · Export 9:16
-          </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes breathe {
+          0%, 100% { transform: scale(1);    opacity: 0.55; }
+          50%      { transform: scale(1.08); opacity: 0.95; }
+        }
+        @keyframes shimmer-line {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(220%); }
+        }
+      `}</style>
     </PhoneShell>
   );
 }

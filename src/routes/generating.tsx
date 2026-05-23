@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { useEffect } from "react";
 import { CinematicBg } from "@/components/CinematicBg";
 import { PhoneShell } from "@/components/PhoneShell";
 import bg from "@/assets/template-before-after.jpg";
@@ -9,104 +8,93 @@ export const Route = createFileRoute("/generating")({
   component: Generating,
 });
 
-const steps = [
-  { label: "Hook", delay: 600 },
-  { label: "Structură", delay: 1500 },
-  { label: "Scene", delay: 2700 },
-  { label: "Sunet", delay: 3600 },
-];
-
 function Generating() {
-  const [done, setDone] = useState<number>(0);
   const nav = useNavigate();
 
   useEffect(() => {
-    const timers = steps.map((s, i) =>
-      setTimeout(() => setDone((d) => Math.max(d, i + 1)), s.delay)
-    );
-    const final = setTimeout(() => nav({ to: "/film" }), 4400);
-    return () => {
-      timers.forEach(clearTimeout);
-      clearTimeout(final);
-    };
+    const t = setTimeout(() => nav({ to: "/film" }), 4400);
+    return () => clearTimeout(t);
   }, [nav]);
 
   return (
     <PhoneShell>
-      <CinematicBg src={bg} blur overlay={0.7} kenBurns={false} />
+      <CinematicBg src={bg} blur overlay={0.8} kenBurns={false} />
 
-      <div className="relative z-10 flex flex-col h-full px-7 pt-20 pb-12">
-        <div className="flex flex-col items-center mt-6">
-          <div className="relative w-28 h-28 flex items-center justify-center">
-            <span className="absolute inset-0 rounded-full border border-[#E8D5B5]/30" />
-            <span className="absolute inset-2 rounded-full border-t border-[#E8D5B5] animate-spin" style={{ animationDuration: "2s" }} />
-            <span className="absolute inset-6 rounded-full bg-[#E8D5B5]/10 backdrop-blur" />
-            <Loader2 className="w-7 h-7 text-[#E8D5B5] animate-spin" style={{ animationDuration: "1.4s" }} />
+      {/* Soft warm glow behind the title — anchors the eye to the center
+          without competing with the typography. */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 42%, rgba(232,213,181,0.10) 0%, rgba(232,213,181,0) 55%)",
+        }}
+      />
+
+      <div className="relative z-10 h-full flex flex-col">
+        {/* Concentric breathing rings — calm presence, not a busy spinner.
+            Two rings pulsing out of phase + a small filled disk inside. */}
+        <div className="flex justify-center" style={{ marginTop: "22%" }}>
+          <div className="relative w-[72px] h-[72px]">
+            <span
+              className="absolute inset-0 rounded-full border border-[#E8D5B5]/25"
+              style={{ animation: "breathe 3s ease-in-out infinite" }}
+            />
+            <span
+              className="absolute inset-[14px] rounded-full border border-[#E8D5B5]/45"
+              style={{ animation: "breathe 3s ease-in-out infinite 0.5s" }}
+            />
+            <span
+              className="absolute inset-[28px] rounded-full bg-[#E8D5B5]"
+              style={{ opacity: 0.7 }}
+            />
           </div>
+        </div>
 
-          <p className="mt-10 text-[11px] tracking-[0.45em] uppercase text-[#E8D5B5] font-semibold">
-            ReelPilot AI
+        {/* Title block — kicker uppercase, then two-line serif title with
+            the second line italic gold. Single dominant element on screen. */}
+        <div className="flex flex-col items-center text-center px-7 mt-14">
+          <p className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5]/65 font-medium">
+            Pasul · 01
           </p>
-          <h1 className="h1-lux text-[44px] text-center text-white mt-3">
-            Construim<br/>
-            <em className="italic font-editorial text-[#E8D5B5]">Reel-ul tău…</em>
+          <h1
+            className="font-editorial text-white mt-5"
+            style={{ fontSize: "34px", lineHeight: 1.05, letterSpacing: "-0.02em" }}
+          >
+            Ne pregătim
+          </h1>
+          <h1
+            className="font-editorial italic text-[#E8D5B5] mt-1"
+            style={{ fontSize: "34px", lineHeight: 1.05, letterSpacing: "-0.02em" }}
+          >
+            de filmare
           </h1>
         </div>
 
-        <div className="mt-auto">
-          <div className="glass-lux rounded-3xl p-5 space-y-1">
-            {steps.map((s, i) => {
-              const isDone = done > i;
-              const isActive = done === i;
-              return (
-                <div
-                  key={s.label}
-                  className={`flex items-center gap-4 py-3 px-2 rounded-2xl transition-all duration-500 ${
-                    isActive ? "bg-white/5" : ""
-                  }`}
-                >
-                  <div
-                    className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                      isDone
-                        ? "bg-[#E8D5B5] text-black"
-                        : isActive
-                          ? "border border-[#E8D5B5]/60"
-                          : "border border-white/15"
-                    }`}
-                  >
-                    {isDone ? (
-                      <Check className="w-4 h-4" strokeWidth={3} />
-                    ) : isActive ? (
-                      <span className="w-2 h-2 rounded-full bg-[#E8D5B5] animate-pulse" />
-                    ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-[15px] tracking-wide ${
-                      isDone ? "text-white" : isActive ? "text-white/90" : "text-white/40"
-                    }`}
-                  >
-                    {s.label}
-                  </span>
-                  {isActive && (
-                    <span className="ml-auto text-[10px] tracking-widest uppercase text-[#E8D5B5]/80">
-                      …
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+        {/* Lower third: thin shimmer line. Replaces the heavy checklist card. */}
+        <div className="mt-auto flex flex-col items-center pb-20">
+          <div className="relative w-[44%] h-px bg-[#E8D5B5]/10 overflow-hidden rounded-full">
+            <div
+              className="absolute inset-y-0 w-1/2"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, #E8D5B5, transparent)",
+                animation: "shimmer-line 2.4s ease-in-out infinite",
+              }}
+            />
           </div>
-
-          <div className="mt-5 h-[2px] rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-gold/60 via-gold to-gold/60 progress-fill" />
-          </div>
-          <p className="mt-3 text-center text-[11px] tracking-widest uppercase text-white/45">
-            Generăm scene optimizate pentru tine
-          </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes breathe {
+          0%, 100% { transform: scale(1);    opacity: 0.55; }
+          50%      { transform: scale(1.08); opacity: 0.95; }
+        }
+        @keyframes shimmer-line {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(220%); }
+        }
+      `}</style>
     </PhoneShell>
   );
 }
