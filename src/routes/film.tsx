@@ -335,13 +335,13 @@ function Film() {
               )}
             </div>
 
-            {/* Editorial quote — anchored at the bottom of the scroll area
-                via `mt-auto`. Skipped when the goal duplicates the
-                description (the template adapter sometimes copies it). */}
+            {/* Editorial quote — vertically centered between the text
+                above and the button below. `my-auto` splits remaining
+                scroll space equally above and below the quote. */}
             {scenario.goal &&
               scenario.goal.trim() &&
               scenario.goal.trim() !== scenario.description?.trim() && (
-                <div className="mt-auto pt-8 pb-2">
+                <div className="my-auto py-6">
                   <div
                     className="h-px"
                     style={{
@@ -350,7 +350,7 @@ function Film() {
                     }}
                   />
                   <p className="font-editorial italic text-[#E8D5B5]/75 text-[12px] leading-relaxed text-center my-3 px-2">
-                    „{scenario.goal}"
+                    {scenario.goal}
                   </p>
                   <div
                     className="h-px"
