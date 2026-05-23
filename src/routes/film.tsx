@@ -207,8 +207,8 @@ function Film() {
         {/* Solid midnight base — the split image sits on top of this. */}
         <div className="absolute inset-0 bg-[#0F1419]" />
 
-        {/* TOP THIRD — split before/after, with slow horizontal sweep. */}
-        <div className="absolute top-0 left-0 right-0 h-[40%] overflow-hidden">
+        {/* TOP — split before/after, image-dominant (60% of screen). */}
+        <div className="absolute top-0 left-0 right-0 h-[60%] overflow-hidden">
           {isTransformation ? (
             <>
               {/* BEFORE — fills the whole area as the base layer. */}
@@ -269,10 +269,11 @@ function Film() {
           </div>
         </div>
 
-        {/* MAIN CONTENT — starts right under the image, fills the rest. */}
-        <div className="relative z-10 h-full flex flex-col pt-[40%] pb-6">
-          <div className="flex-1 min-h-0 flex flex-col px-6 pt-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-y-auto">
-            {/* Top group: pills + eyebrow + title + description. */}
+        {/* MAIN CONTENT — content compact, hugging the button from above
+            with a small breathing gap. Layout = flex-end so any leftover
+            space sits between the image and the text (not the button). */}
+        <div className="relative z-10 h-full flex flex-col pb-6">
+          <div className="flex-1 min-h-0 flex flex-col justify-end px-6 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-y-auto">
             <div>
               {/* Metadata pills — orient the user immediately. */}
               <div className="flex items-center gap-1.5 mb-4">
