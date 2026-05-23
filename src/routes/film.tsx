@@ -444,7 +444,14 @@ function Film() {
           </div>
 
           <button
-            onClick={() => setPhase("film")}
+            onClick={() => {
+              // Same click activates BOTH the navigation AND the camera
+              // request. iOS Safari (and others) accept getUserMedia inside
+              // this gesture handler, so no separate "Activate camera"
+              // screen is needed — the prompt appears here.
+              setPhase("film");
+              void cam.start("user");
+            }}
             className="mt-3 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-[#0F1419] font-semibold uppercase tracking-[0.15em] text-xs shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <><Play className="w-4 h-4 fill-current" /> Sunt pregătit, începem</>
@@ -577,30 +584,39 @@ function Film() {
             <button
               onClick={cam.switchCamera}
               disabled={cam.state !== "ready" || isRecording}
-              className="flex items-center gap-1 text-[11px] tracking-widest uppercase text-white/70 disabled:opacity-30"
-              title="Schimbă camera"
+              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-white flex items-center justify-center transition active:scale-95 disabled:opacity-30"
+              aria-label="Schimbă camera"
+              title="Schimbă camera (față ↔ spate)"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Camera state messages */}
-        {(cam.state === "idle" || cam.state === "requesting") && (
-          <div className="mt-8 mx-auto glass-lux rounded-2xl px-5 py-4 max-w-[90%] text-center">
-            <p className="text-white text-sm font-semibold">
-              {cam.state === "requesting" ? "Se cere accesul la cameră…" : "Pornește camera ca să filmezi"}
-            </p>
-            <p className="text-white/60 text-xs mt-1">
-              Browserul va cere permisiunea pentru cameră și microfon.
-            </p>
+        {/* Camera permission flow.
+            - idle: shouldn't normally happen — camera was started from the
+              "Sunt pregătit" button. Fallback retry button just in case.
+            - requesting: subtle loading state. iOS Safari shows its own
+              permission dialog on top, so we just wait quietly underneath.
+            - denied/error/etc: handled separately below with full messaging. */}
+        {cam.state === "requesting" && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0F1419]/70 backdrop-blur-md">
+            <div className="text-center px-6">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-[#E8D5B5]/25 border-t-[#E8D5B5] animate-spin" />
+              <p className="text-white/70 text-xs tracking-[0.3em] uppercase">
+                Se cere accesul la cameră
+              </p>
+            </div>
+          </div>
+        )}
+        {cam.state === "idle" && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0F1419]/70 backdrop-blur-md">
             <button
               onClick={() => void cam.start("user")}
-              disabled={cam.state === "requesting"}
-              className="mt-3 inline-flex items-center gap-2 px-5 h-10 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[11px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-black text-[11px] tracking-widest uppercase font-semibold shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98]"
             >
               <Camera className="w-3.5 h-3.5" />
-              {cam.state === "requesting" ? "Se conectează…" : "Activează camera"}
+              Activează camera
             </button>
           </div>
         )}
