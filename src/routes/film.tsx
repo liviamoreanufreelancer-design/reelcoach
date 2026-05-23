@@ -269,91 +269,95 @@ function Film() {
           </div>
         </div>
 
-        {/* MAIN CONTENT — starts below the image, scrolls if needed. */}
-        <div className="relative z-10 h-full flex flex-col pt-[42%] pb-6">
-          <div className="flex-1 min-h-0 overflow-y-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {/* Metadata pills — orient the user immediately. */}
-            <div className="flex items-center gap-1.5 mb-4">
-              <span
-                className="text-[9px] tracking-[0.3em] uppercase text-white/65 px-2 py-1 rounded-full border border-white/15"
-                style={{ fontVariantNumeric: "tabular-nums" }}
+        {/* MAIN CONTENT — starts right under the image, fills the rest. */}
+        <div className="relative z-10 h-full flex flex-col pt-[40%] pb-6">
+          <div className="flex-1 min-h-0 flex flex-col px-6 pt-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-y-auto">
+            {/* Top group: pills + eyebrow + title + description. */}
+            <div>
+              {/* Metadata pills — orient the user immediately. */}
+              <div className="flex items-center gap-1.5 mb-4">
+                <span
+                  className="text-[9px] tracking-[0.3em] uppercase text-white/65 px-2 py-1 rounded-full border border-white/15"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {scenes.length} scene
+                </span>
+                <span
+                  className="text-[9px] tracking-[0.3em] uppercase text-white/65 px-2 py-1 rounded-full border border-white/15"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {totalDuration} sec
+                </span>
+                <span
+                  className={`text-[9px] tracking-[0.3em] uppercase px-2 py-1 rounded-full border border-white/15 ${diffTone}`}
+                  title={diffMeta.desc}
+                >
+                  {diffMeta.short}
+                </span>
+              </div>
+
+              {/* Descriptive eyebrow. */}
+              <p className="text-[9px] tracking-[0.4em] uppercase text-[#E8D5B5]/75 font-medium mb-2.5">
+                Transformare wow
+              </p>
+
+              {/* Medium title with one word in italic gold. */}
+              <h1
+                className="font-editorial text-white"
+                style={{ fontSize: "26px", lineHeight: 1.05, letterSpacing: "-0.025em" }}
               >
-                {scenes.length} scene
-              </span>
-              <span
-                className="text-[9px] tracking-[0.3em] uppercase text-white/65 px-2 py-1 rounded-full border border-white/15"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {totalDuration} sec
-              </span>
-              <span
-                className={`text-[9px] tracking-[0.3em] uppercase px-2 py-1 rounded-full border border-white/15 ${diffTone}`}
-                title={diffMeta.desc}
-              >
-                {diffMeta.short}
-              </span>
+                {(() => {
+                  const t = scenario.title;
+                  const m = t.match(/(.*?)(transformar[a-z]*)(.*)/i);
+                  if (m) {
+                    return (
+                      <>
+                        {m[1]}
+                        <em className="italic text-[#E8D5B5] font-editorial">
+                          {m[2]}
+                        </em>
+                        {m[3]}
+                      </>
+                    );
+                  }
+                  return t;
+                })()}
+              </h1>
+
+              {/* Description — primary readable content. */}
+              {scenario.description && (
+                <p className="text-white/65 text-[13px] mt-4 leading-relaxed">
+                  {scenario.description}
+                </p>
+              )}
             </div>
 
-            {/* Descriptive eyebrow — replaces the generic "CE VEI OBȚINE". */}
-            <p className="text-[9px] tracking-[0.4em] uppercase text-[#E8D5B5]/75 font-medium mb-2.5">
-              Transformare wow
-            </p>
-
-            {/* Medium title with one word in italic gold. The italic word
-                is the second-to-last meaningful one — "transformarea". */}
-            <h1
-              className="font-editorial text-white"
-              style={{ fontSize: "26px", lineHeight: 1.05, letterSpacing: "-0.025em" }}
-            >
-              {(() => {
-                // Split the title around the first word matching /transform/i
-                // and render that word in italic gold. Falls back to plain.
-                const t = scenario.title;
-                const m = t.match(/(.*?)(transformar[a-z]*)(.*)/i);
-                if (m) {
-                  return (
-                    <>
-                      {m[1]}
-                      <em className="italic text-[#E8D5B5] font-editorial">
-                        {m[2]}
-                      </em>
-                      {m[3]}
-                    </>
-                  );
-                }
-                return t;
-              })()}
-            </h1>
-
-            {/* Description — primary readable content. */}
-            {scenario.description && (
-              <p className="text-white/65 text-[13px] mt-4 leading-relaxed">
-                {scenario.description}
-              </p>
-            )}
-
-            {/* Editorial quote signature — encased in fine lines. */}
-            {scenario.goal && (
-              <div className="mt-7 mb-2">
-                <div
-                  className="h-px"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent, rgba(232,213,181,0.3), transparent)",
-                  }}
-                />
-                <p className="font-editorial italic text-[#E8D5B5]/75 text-[12px] leading-relaxed text-center my-3 px-2">
-                  „{scenario.goal}"
-                </p>
-                <div
-                  className="h-px"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent, rgba(232,213,181,0.3), transparent)",
-                  }}
-                />
-              </div>
-            )}
+            {/* Editorial quote — anchored at the bottom of the scroll area
+                via `mt-auto`. Skipped when the goal duplicates the
+                description (the template adapter sometimes copies it). */}
+            {scenario.goal &&
+              scenario.goal.trim() &&
+              scenario.goal.trim() !== scenario.description?.trim() && (
+                <div className="mt-auto pt-8 pb-2">
+                  <div
+                    className="h-px"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(232,213,181,0.3), transparent)",
+                    }}
+                  />
+                  <p className="font-editorial italic text-[#E8D5B5]/75 text-[12px] leading-relaxed text-center my-3 px-2">
+                    „{scenario.goal}"
+                  </p>
+                  <div
+                    className="h-px"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(232,213,181,0.3), transparent)",
+                    }}
+                  />
+                </div>
+              )}
           </div>
 
           <div className="px-5 pt-3 shrink-0">
