@@ -9,6 +9,8 @@ import { useCamera } from "@/hooks/useCamera";
 import { useRecorder } from "@/hooks/useRecorder";
 import { saveClip, listClips } from "@/lib/clip-store";
 import { playCountdown, playRecordStart, playRecordStop, playSuccess, playNavForward } from "@/lib/ui-sound";
+import beforeImg from "@/assets/template-before.jpg";
+import afterImg from "@/assets/template-after.jpg";
 
 export const Route = createFileRoute("/film")({
   component: Film,
@@ -193,70 +195,192 @@ function Film() {
 
   // ---------- Intro: Ce vei obține ----------
   if (phase === "overview") {
+    // Detect if this is a transformation template — show split before/after.
+    // Heuristic: scenario id or title contains "transform". For now, always
+    // show the split on the demo template. Other templates fall back to a
+    // single cinematic image with Ken Burns.
+    const isTransformation =
+      /transform/i.test(scenario.id ?? "") || /transform/i.test(scenario.title);
+
     return (
       <PhoneShell>
-        <CinematicBg src={scenario.image ?? scene.bg} blur overlay={0.75} kenBurns={false} />
-        <div className="relative z-10 flex flex-col h-full px-5 pt-12 pb-6">
-          <div className="flex items-center justify-between px-1">
+        {/* Solid midnight base — the split image sits on top of this. */}
+        <div className="absolute inset-0 bg-[#0F1419]" />
+
+        {/* TOP THIRD — split before/after, with slow horizontal sweep. */}
+        <div className="absolute top-0 left-0 right-0 h-[40%] overflow-hidden">
+          {isTransformation ? (
+            <>
+              {/* BEFORE — fills the whole area as the base layer. */}
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${beforeImg})` }}
+              />
+              {/* AFTER — clipped from the right side, sweeping left to right
+                  to reveal more "after" then receding back. The clip-path
+                  animation makes a slow editorial slider. */}
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `url(${afterImg})`,
+                  animation: "ba-sweep 9s ease-in-out infinite",
+                }}
+              />
+              {/* The vertical separator line that follows the clip edge.
+                  Pure decoration — same animation curve so it stays glued. */}
+              <div
+                className="absolute top-0 bottom-0 w-px bg-[#E8D5B5]/40"
+                style={{
+                  animation: "ba-line 9s ease-in-out infinite",
+                  boxShadow: "0 0 12px rgba(232,213,181,0.5)",
+                }}
+              />
+            </>
+          ) : (
+            // Non-transformation templates: single image with Ken Burns.
+            <div
+              className="absolute inset-0 bg-cover bg-center ken-burns"
+              style={{
+                backgroundImage: `url(${scenario.image ?? scene.bg})`,
+              }}
+            />
+          )}
+          {/* Gradient that melts the image into the dark canvas below. */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F1419]" />
+        </div>
+
+        {/* HEADER — sits on top of the image. */}
+        <div className="absolute top-0 left-0 right-0 px-5 pt-12 z-20">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => nav({ to: "/generating" })}
-              className="w-10 h-10 rounded-full glass flex items-center justify-center"
+              className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center"
               aria-label="Înapoi"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4 text-white" />
             </button>
-            <span className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-semibold">
-              Pasul 1 din {totalSteps}
+            <span
+              className="text-[10px] tracking-[0.4em] uppercase text-[#E8D5B5] font-medium"
+              style={{ textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}
+            >
+              Pasul · 01
             </span>
-            <span className="w-10" />
+            <span className="w-9" />
           </div>
+        </div>
 
-          <div className="mt-4 px-1 flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.3em] uppercase text-[#E8D5B5]/90 font-semibold">
-              <Sparkles className="w-3 h-3" /> Ce vei obține
-            </span>
-            <h1 className="font-display text-[34px] leading-[1.05] text-white mt-3 tracking-[-0.02em]">
-              {scenario.title}
-            </h1>
-            <p className="text-white/70 text-[14px] italic mt-2 leading-snug">
-              „{scenario.hook}"
-            </p>
-            {scenario.description && (
-              <p className="text-white/65 text-[13px] mt-3 leading-relaxed">
-                {scenario.description}
-              </p>
-            )}
-            {scenario.goal && (
-              <div className="mt-4 rounded-2xl border border-[#E8D5B5]/25 bg-[#E8D5B5]/[0.06] px-4 py-3">
-                <p className="text-[9px] tracking-[0.4em] uppercase text-[#E8D5B5]/90 font-semibold">Goal</p>
-                <p className="text-white/90 text-[13px] italic leading-snug mt-1">„{scenario.goal}"</p>
-              </div>
-            )}
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
+        {/* MAIN CONTENT — starts below the image, scrolls if needed. */}
+        <div className="relative z-10 h-full flex flex-col pt-[42%] pb-6">
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* Metadata pills — orient the user immediately. */}
+            <div className="flex items-center gap-1.5 mb-4">
+              <span
+                className="text-[9px] tracking-[0.3em] uppercase text-white/65 px-2 py-1 rounded-full border border-white/15"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
                 {scenes.length} scene
               </span>
-              <span className="text-[10px] tracking-[0.25em] uppercase text-white/55 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#E8D5B5]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
-                ~{totalDuration}s total
+              <span
+                className="text-[9px] tracking-[0.3em] uppercase text-white/65 px-2 py-1 rounded-full border border-white/15"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                {totalDuration} sec
               </span>
-              <span className={`text-[10px] tracking-[0.25em] uppercase px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/15 font-semibold ${diffTone}`} title={diffMeta.desc}>
-                <span className="inline-flex gap-[2px] mr-1.5 align-middle">
-                  {[0, 1, 2].map((i) => (
-                    <span key={i} className={`w-[4px] h-[4px] rounded-full inline-block ${i < diffDots ? "bg-current" : "bg-current/25"}`} />
-                  ))}
-                </span>
+              <span
+                className={`text-[9px] tracking-[0.3em] uppercase px-2 py-1 rounded-full border border-white/15 ${diffTone}`}
+                title={diffMeta.desc}
+              >
                 {diffMeta.short}
               </span>
             </div>
+
+            {/* Descriptive eyebrow — replaces the generic "CE VEI OBȚINE". */}
+            <p className="text-[9px] tracking-[0.4em] uppercase text-[#E8D5B5]/75 font-medium mb-2.5">
+              Transformare wow
+            </p>
+
+            {/* Medium title with one word in italic gold. The italic word
+                is the second-to-last meaningful one — "transformarea". */}
+            <h1
+              className="font-editorial text-white"
+              style={{ fontSize: "26px", lineHeight: 1.05, letterSpacing: "-0.025em" }}
+            >
+              {(() => {
+                // Split the title around the first word matching /transform/i
+                // and render that word in italic gold. Falls back to plain.
+                const t = scenario.title;
+                const m = t.match(/(.*?)(transformar[a-z]*)(.*)/i);
+                if (m) {
+                  return (
+                    <>
+                      {m[1]}
+                      <em className="italic text-[#E8D5B5] font-editorial">
+                        {m[2]}
+                      </em>
+                      {m[3]}
+                    </>
+                  );
+                }
+                return t;
+              })()}
+            </h1>
+
+            {/* Description — primary readable content. */}
+            {scenario.description && (
+              <p className="text-white/65 text-[13px] mt-4 leading-relaxed">
+                {scenario.description}
+              </p>
+            )}
+
+            {/* Editorial quote signature — encased in fine lines. */}
+            {scenario.goal && (
+              <div className="mt-7 mb-2">
+                <div
+                  className="h-px"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(232,213,181,0.3), transparent)",
+                  }}
+                />
+                <p className="font-editorial italic text-[#E8D5B5]/75 text-[12px] leading-relaxed text-center my-3 px-2">
+                  „{scenario.goal}"
+                </p>
+                <div
+                  className="h-px"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(232,213,181,0.3), transparent)",
+                  }}
+                />
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={() => setPhase("materials")}
-            className="mt-3 w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-[#0F1419] font-semibold uppercase tracking-[0.15em] text-xs shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            Continuă <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="px-5 pt-3 shrink-0">
+            <button
+              onClick={() => setPhase("materials")}
+              className="w-full h-14 rounded-full bg-gradient-to-r from-[#F4E4C1] via-[#E8D5B5] to-[#D4AF37] text-[#0F1419] font-semibold uppercase tracking-[0.15em] text-xs shadow-[0_4px_24px_rgba(244,228,193,0.4)] active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              Continuă <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
+
+        <style>{`
+          /* The "after" image is revealed via clip-path. The clip oscillates
+             across the X axis to mimic a slow before/after slider. */
+          @keyframes ba-sweep {
+            0%, 100% { clip-path: inset(0 65% 0 0); }
+            50%      { clip-path: inset(0 25% 0 0); }
+          }
+          /* The vertical separator follows the right edge of the clipped
+             "after" image. Position values match the clip-path inset (right
+             value). Subtle glow keeps it editorial, not technical. */
+          @keyframes ba-line {
+            0%, 100% { right: 65%; }
+            50%      { right: 25%; }
+          }
+        `}</style>
       </PhoneShell>
     );
   }
